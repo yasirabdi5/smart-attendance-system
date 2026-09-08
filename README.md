@@ -1,1 +1,0 @@
-# smart-attendance-system
