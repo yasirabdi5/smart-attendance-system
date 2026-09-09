@@ -71,8 +71,13 @@ def students():
         conn.close()
 
         return "Student added successfully!"
+    students = conn.execute(
+        "SELECT * FROM students ORDER BY id DESC"
+    ).fetchall()
 
-    return render_template("students.html")
+    conn.close()
+
+    return render_template("students.html",students=students)
 
 
 if __name__ == "__main__":
