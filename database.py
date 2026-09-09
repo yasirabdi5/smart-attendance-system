@@ -4,29 +4,36 @@ import sqlite3
 DATABASE = "attendance.db"
 
 
-def create_database():
+def get_db_connection():
     connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+    return connection
 
-    cursor = connection.cursor()
+def create_database():
+    connection = get_db_connection()
 
-    cursor.execute("""
+
+    connection.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             roll_number TEXT UNIQUE NOT NULL,
-            email TEXT
+            email TEXT,
+            created_at timestamp default current_timestamp
         )
     """)
         
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS students (
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            roll_number TEXT NOT NULL,
-            name TEXT NOT NULL,
+            student_id integer not null,
             date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            FOREING KEY (roll_no) REFERENCES students (roll_no)
-    )
+            status text not null check (status in ('present', 'absent')),
+            created_at timestamp default current_timestamp,
+
+            foreign key (student_id) references students(id) on delete cascade,
+            unique (student_id, date)
+        )
     """)
 
     connection.commit()
