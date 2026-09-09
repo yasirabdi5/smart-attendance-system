@@ -47,13 +47,14 @@ def home():
 @app.route("/students", methods=["GET", "POST"])
 def students():
 
+    conn=get_db_connection()
+
     if request.method == "POST":
 
         name = request.form["name"]
         roll_no = request.form["roll_no"]
         email = request.form["email"]
 
-        conn = get_db_connection()
 
         try:
             conn.execute(

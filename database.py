@@ -17,11 +17,25 @@ def create_database():
             email TEXT
         )
     """)
+        
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            roll_number TEXT NOT NULL,
+            name TEXT NOT NULL,
+            date TEXT NOT NULL,
+            time TEXT NOT NULL,
+            FOREING KEY (roll_no) REFERENCES students (roll_no)
+    )
+    """)
 
     connection.commit()
     connection.close()
+
+   
 
 
 if __name__ == "__main__":
     create_database()
     print("Database created successfully!")
+
