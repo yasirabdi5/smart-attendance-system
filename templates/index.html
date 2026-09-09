@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Attendance System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            Smart Attendance
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="#">Students</a>
+            <a href="#">Attendance</a>
+        </div>
+    </nav>
+
+
+    <main class="container">
+
+        <h1>Attendance Dashboard</h1>
+
+        <p class="subtitle">
+            Manage students and track attendance easily.
+        </p>
+    <header style="background-color: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+    <h2>Smart Attendance System</h2>
+    <nav>
+        <a href="/" style="color: white; margin-right: 15px; text-decoration: none;">Home</a>
+        <a href="/students" style="color: white; margin-right: 15px; text-decoration: none;">Students</a>
+        <!-- Logout Button -->
+        <a href="/logout" style="background-color: #dc3545; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none;">Logout</a>
+    </nav>
+</header>
+
+        <!-- Statistics -->
+
+        <div class="stats">
+
+            <div class="card">
+                <h3>Total Students</h3>
+                <p>{{ total_students }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Present Today</h3>
+                <p>0</p>
+            </div>
+
+            <div class="card">
+                <h3>Absent Today</h3>
+                <p>0</p>
+            </div>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="actions">
+
+            <a href="/students" class="button">
+                Add Student
+            </a>
+
+            <a href="#" class="button">
+                Mark Attendance
+            </a>
+
+            <a href="#" class="button">
+                View Attendance
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
