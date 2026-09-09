@@ -171,39 +171,42 @@ def view_attendance():
 
     conn = get_db_connection()
     
-    # Records fetch karna jo frontend par display honge
+    
     records = conn.execute("""
         SELECT students.name, students.roll_no, attendance.date, attendance.status 
         FROM attendance 
         JOIN students ON attendance.student_id = students.id 
         ORDER BY attendance.id DESC
-    """).fetchall()
-
-    # Dropdown mein students dikhane ke liye list
-    students_list = conn.execute("SELECT * FROM students").fetchall()
-    
+    """).fetchall()    
     conn.close()
 
-    return render_template("attendance.html", records=records, students=students_list)
+    return render_template("attendance.html", records=records)
 
-@app.route("/attendance/mark", methods=["POST"])
+@app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
 
-    student_id = request.form.get("student_id")
-    date = request.form.get("date")
-    status = request.form.get("status")
-
     conn = get_db_connection()
-    conn.execute(
-        "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-        (student_id, date, status)
-    )
-    conn.commit()
-    conn.close()
 
-    return redirect(url_for("view_attendance"))
+    if request.method == "POST":
+        student_id = request.form.get("student_id")
+        date = request.form.get("date")
+        status = request.form.get("status")
+
+        conn.execute(
+            "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
+            (student_id, date, status)
+        )
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for("view_attendance"))
+
+    students_list = conn.execute("SELECT * FROM students").fetchall()
+    conn.close()
+    
+    return render_template("mark_attendance.html", students=students_list)
 
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
