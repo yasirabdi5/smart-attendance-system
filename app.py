@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
 
 app = Flask(__name__)
+
+app.secret_key = "smart-attendance-secret-key"
 
 DATABASE = "attendance.db"
 
@@ -27,9 +29,30 @@ def init_db():
     conn.commit()
     conn.close()
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == "admin" and password == "admin123":
+            session["admin_logged_in"] = True
+            return redirect(url_for("home"))
+
+        return "Invalid username or password!"
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("admin_logged_in", None)
+    return redirect(url_for("login"))
 
 @app.route("/")
 def home():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
     conn = get_db_connection()
 
     total_students = conn.execute(
@@ -42,7 +65,6 @@ def home():
         "index.html",
         total_students=total_students
     )
-
 
 @app.route("/students", methods=["GET", "POST"])
 def students():
