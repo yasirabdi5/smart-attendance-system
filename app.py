@@ -68,6 +68,8 @@ def home():
 
 @app.route("/students", methods=["GET", "POST"])
 def students():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
 
     conn=get_db_connection()
 
@@ -116,6 +118,33 @@ def delete_student(student_id):
 
     return "Student deleted successfully!"
 
+@app.route("/students/edit/<int:student_id>", methods=["POST"])
+def edit_student(student_id):
+    name = request.form["name"]
+    roll_no = request.form["roll_no"]
+    email = request.form["email"]
+
+    conn = get_db_connection()
+
+    try:
+        conn.execute(
+            """
+            UPDATE students
+            SET name = ?, roll_no = ?, email = ?
+            WHERE id = ?
+            """,
+            (name, roll_no, email, student_id)
+        )
+
+        conn.commit()
+
+    except sqlite3.IntegrityError:
+        conn.close()
+        return "Roll number already exists!"
+
+    conn.close()
+
+    return "Student updated successfully!"
 
 if __name__ == "__main__":
     init_db()
