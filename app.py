@@ -79,6 +79,21 @@ def students():
 
     return render_template("students.html",students=students)
 
+@app.route("/students/delete/<int:student_id>", methods=["POST"])
+def delete_student(student_id):
+
+    conn = get_db_connection()
+
+    conn.execute(
+        "DELETE FROM students WHERE id = ?",
+        (student_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return "Student deleted successfully!"
+
 
 if __name__ == "__main__":
     init_db()
