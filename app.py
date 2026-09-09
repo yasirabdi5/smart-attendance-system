@@ -34,6 +34,17 @@ def init_db():
         )
     """)
 
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            status TEXT NOT NULL,
+            UNIQUE(student_id, date),
+            FOREIGN KEY (student_id) REFERENCES students(id)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -104,15 +115,38 @@ def home():
 
     conn = get_db_connection()
 
+    # Total number of students
     total_students = conn.execute(
         "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    # Number of students present today
+    present_today = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM attendance
+        WHERE date = DATE('now')
+        AND status = 'Present'
+        """
+    ).fetchone()[0]
+
+    # Number of students absent today
+    absent_today = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM attendance
+        WHERE date = DATE('now')
+        AND status = 'Absent'
+        """
     ).fetchone()[0]
 
     conn.close()
 
     return render_template(
         "index.html",
-        total_students=total_students
+        total_students=total_students,
+        present_today=present_today,
+        absent_today=absent_today
     )
 
 
@@ -197,6 +231,61 @@ def edit_student(student_id):
 
     return "Student updated successfully!"
 
+@app.route("/attendance/mark", methods=["POST"])
+def mark_attendance():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    student_id = request.form["student_id"]
+    date = request.form["date"]
+    status = request.form["status"]
+
+    conn = get_db_connection()
+
+    try:
+        conn.execute(
+            """
+            INSERT INTO attendance (student_id, date, status)
+            VALUES (?, ?, ?)
+            """,
+            (student_id, date, status)
+        )
+        conn.commit()
+
+    except sqlite3.IntegrityError:
+        conn.close()
+        return "Attendance already marked for this student today!"
+
+    conn.close()
+
+    return "Attendance marked successfully!"
+
+@app.route("/attendance")
+def view_attendance():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    attendance = conn.execute("""
+        SELECT
+            attendance.id,
+            students.name,
+            students.roll_no,
+            attendance.date,
+            attendance.status
+        FROM attendance
+        JOIN students
+        ON attendance.student_id = students.id
+        ORDER BY attendance.date DESC
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "attendance.html",
+        attendance=attendance
+    )
 
 if __name__ == "__main__":
     init_db()
