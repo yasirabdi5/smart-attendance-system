@@ -110,7 +110,6 @@ def home():
         "SELECT COUNT(*) FROM students"
     ).fetchone()[0]
 
-
     today_str = datetime.now().strftime("%d-%m-%Y")
 
     present_today = conn.execute(
