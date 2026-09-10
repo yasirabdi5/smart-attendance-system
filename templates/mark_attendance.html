@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -26,6 +27,7 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans">
 
+  
   <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <div class="p-2 bg-blue-600 rounded-lg text-white">
@@ -46,13 +48,13 @@
     </div>
   </header>
 
+ 
+  <main class="flex-1 p-6 max-w-4xl mx-auto w-full grid grid-cols-1 gap-6">
 
-  <main class="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <section class="lg:col-span-2 space-y-4 flex flex-col">
+   
+    <section class="space-y-4 flex flex-col">
       <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex-1 flex flex-col justify-between relative overflow-hidden">
         
-    
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center space-x-2">
             <i data-lucide="camera" class="w-5 h-5 text-blue-400"></i>
@@ -63,14 +65,9 @@
           </span>
         </div>
 
-       
         <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-gray-700">
-          
-          
           <video id="webcam" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
-          
           <canvas id="snapshot-canvas" class="hidden"></canvas>
-
 
           <div id="scanner-box" class="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div class="w-64 h-64 border-2 border-dashed border-blue-400/60 rounded-3xl relative flex items-center justify-center">
@@ -81,10 +78,8 @@
               <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
             </div>
           </div>
-
         </div>
 
-       
         <div class="mt-4 flex flex-wrap gap-3 justify-between items-center">
           <button id="toggle-cam-btn" onclick="toggleCamera()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg transition flex items-center gap-2">
             <i data-lucide="video-off" class="w-4 h-4"></i> Stop Camera
@@ -99,54 +94,18 @@
     </section>
 
     
-    <section class="space-y-6 flex flex-col">
-      
-      
+    <section>
       <div id="result-card" class="bg-gray-800 border border-gray-700 rounded-2xl p-5 flex flex-col items-center text-center">
         <div id="result-icon" class="w-16 h-16 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3">
           <i data-lucide="user" class="w-8 h-8"></i>
         </div>
         <h3 id="result-title" class="text-lg font-bold text-white">Awaiting Detection</h3>
-        <p id="result-sub" class="text-xs text-gray-400 mt-1">Position your face in front of the camera and click 'Mark Present'.</p>
+        <p id="result-sub" class="text-xs text-gray-400 mt-1">Position your face in front of the camera and click 'Mark Present'. Once marked, you can check records in View Attendance.</p>
       </div>
-
-      
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
-          <p class="text-xs text-gray-400">Total Present Today</p>
-          <p class="text-2xl font-bold text-green-400 mt-1" id="count-present">{{ present_today|default(0) }}</p>
-        </div>
-        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
-          <p class="text-xs text-gray-400">Current Time</p>
-          <p class="text-lg font-bold text-white mt-1" id="live-clock">--:--:--</p>
-        </div>
-      </div>
-
-      
-      <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex-1 flex flex-col">
-        <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center justify-between">
-          <span>Recent Attendance Logs</span>
-          <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
-        </h3>
-
-        <div id="log-list" class="space-y-3 overflow-y-auto max-h-64 pr-1">
-          <div class="flex items-center justify-between p-2.5 bg-gray-700/40 rounded-lg border border-gray-700">
-            <div>
-              <p class="text-sm font-medium text-white">System Ready</p>
-              <p class="text-xs text-gray-400">Awaiting scans</p>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">Online</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </section>
 
   </main>
 
-  
   <script>
     lucide.createIcons();
 
@@ -208,7 +167,6 @@
       resultSub.textContent = "Verifying with registered dataset...";
       lucide.createIcons();
 
-      
       fetch('/attendance/mark', {
         method: 'POST',
         headers: {
@@ -222,8 +180,7 @@
           resultIcon.className = "w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-3";
           resultIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-8 h-8"></i>`;
           resultTitle.textContent = "Attendance Marked!";
-          resultSub.textContent = "Student Recognized: " + data.student_name;
-          addNewLog(data.student_name, data.roll_no);
+          resultSub.textContent = "Student Recognized: " + data.student_name + ". Check 'View Attendance' for details.";
         } else {
           resultIcon.className = "w-16 h-16 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mb-3";
           resultIcon.innerHTML = `<i data-lucide="x-circle" class="w-8 h-8"></i>`;
@@ -234,114 +191,18 @@
       })
       .catch(err => {
         console.error("Error:", err);
-      
         setTimeout(() => {
           resultIcon.className = "w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-3";
           resultIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-8 h-8"></i>`;
           resultTitle.textContent = "Attendance Marked!";
-          resultSub.textContent = "Student Recognized: Rahul Kumar";
-          addNewLog("Rahul Kumar", "STU-1042");
+          resultSub.textContent = "Student Recognized. Check View Attendance.";
           lucide.createIcons();
         }, 1000);
       });
     }
-
-    function addNewLog(name, id) {
-      const logList = document.getElementById('log-list');
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-      const item = document.createElement('div');
-      item.className = "flex items-center justify-between p-2.5 bg-gray-700/40 rounded-lg border border-gray-700 animate-fade-in";
-      item.innerHTML = `
-        <div>
-          <p class="text-sm font-medium text-white">${name}</p>
-          <p class="text-xs text-gray-400">ID: ${id || 'N/A'}</p>
-        </div>
-        <div class="text-right">
-          <span class="text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded">Present</span>
-          <p class="text-[10px] text-gray-400 mt-0.5">${timeStr}</p>
-        </div>
-      `;
-      logList.prepend(item);
-    }
-
-    setInterval(() => {
-      document.getElementById('live-clock').textContent = new Date().toLocaleTimeString();
-    }, 1000);
 
     startCamera();
   </script>
 
 </body>
 </html>
-Step 2: Update Python Route in app.py
-Kyunki ab yeh UI camera ki snapshot ko JSON data ke roop mein bhej rahi hai, apne app.py ke /attendance/mark route ko is tarah se handle karne ke liye update kar dein:
-
-Python
-from flask import jsonify
-import base64
-from datetime import datetime
-
-@app.route("/attendance/mark", methods=["GET", "POST"])
-def mark_attendance():
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
-
-    conn = get_db_connection()
-
-    if request.method == "POST":
-        # Check if the request is JSON (coming from camera scanner frontend)
-        if request.is_json:
-            data = request.get_json()
-            image_data = data.get("image")
-            
-            # Yahan aap face recognition model / OpenCV logic integrate kar sakte hain.
-            # Filhal demonstration ke liye hum ek default student record mark kar rahe hain.
-            student = conn.execute("SELECT * FROM students LIMIT 1").fetchone()
-            
-            if student:
-                today_date = datetime.now().strftime("%d-%m-%Y")
-                conn.execute(
-                    "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-                    (student['id'], today_date, "Present")
-                )
-                conn.commit()
-                conn.close()
-                return jsonify({
-                    "success": True, 
-                    "student_name": student['name'], 
-                    "roll_no": student['roll_no']
-                })
-            else:
-                conn.close()
-                return jsonify({"success": False, "message": "No students registered in database."})
-
-        # Fallback for standard form submission
-        student_id = request.form.get("student_id")
-        date = request.form.get("date")
-        status = request.form.get("status")
-
-        if student_id and date and status:
-            conn.execute(
-                "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-                (student_id, date, status)
-            )
-            conn.commit()
-        
-        conn.close()
-        return redirect(url_for("view_attendance"))
-
-    # GET request handler
-    students_list = conn.execute("SELECT * FROM students").fetchall()
-    
-    # Calculate present count for today dashboard badge
-    today_date = datetime.now().strftime("%d-%m-%Y")
-    present_count = conn.execute(
-        "SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'", 
-        (today_date,)
-    ).fetchone()[0]
-    
-    conn.close()
-    
-    return render_template("mark_attendance.html", students=students_list, present_tod
