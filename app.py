@@ -287,6 +287,23 @@ def update_attendance(attendance_id):
 
     return redirect(url_for("view_attendance"))
 
+@app.route("/attendance/delete/<int:attendance_id>", methods=["POST"])
+def delete_attendance(attendance_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    conn.execute(
+        "DELETE FROM attendance WHERE id = ?",
+        (attendance_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("view_attendance"))
+
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if not session.get("admin_logged_in"):
