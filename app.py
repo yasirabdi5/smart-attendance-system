@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 import sqlite3
+import base64
 from datetime import datetime
 
 app = Flask(__name__)
@@ -14,7 +15,6 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
-
     conn.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +23,6 @@ def init_db():
             email TEXT NOT NULL
         )
     """)
-
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +30,6 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
-
     conn.execute("""
         CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +39,6 @@ def init_db():
             FOREIGN KEY (student_id) REFERENCES students (id)
         )
     """)
-
     conn.commit()
     conn.close()
 
@@ -50,21 +47,15 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-
         conn = get_db_connection()
         try:
-            conn.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, password)
-            )
+            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
         except sqlite3.IntegrityError:
             conn.close()
             return "User already exists! Try a different username."
-
         conn.close()
         return redirect(url_for("login"))
-
     return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -72,26 +63,18 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-
         if username == "admin" and password == "admin123":
             session["admin_logged_in"] = True
             session["username"] = username
             return redirect(url_for("home"))
-
         conn = get_db_connection()
-        user = conn.execute(
-            "SELECT * FROM users WHERE username = ? AND password = ?",
-            (username, password)
-        ).fetchone()
+        user = conn.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
         conn.close()
-
         if user:
             session["admin_logged_in"] = True
             session["username"] = username
             return redirect(url_for("home"))
-
         return "Invalid Username or Password!"
-
     return render_template("login.html")
 
 @app.route("/logout")
@@ -103,149 +86,113 @@ def logout():
 def home():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
-
-    total_students = conn.execute(
-        "SELECT COUNT(*) FROM students"
-    ).fetchone()[0]
-
+    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     today_str = datetime.now().strftime("%d-%m-%Y")
-
-    present_today = conn.execute(
-        "SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'",
-        (today_str,)
-    ).fetchone()[0]
-
-    absent_today = conn.execute(
-        "SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Absent'",
-        (today_str,)
-    ).fetchone()[0]
-
+    present_today = conn.execute("SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'", (today_str,)).fetchone()[0]
+    absent_today = conn.execute("SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Absent'", (today_str,)).fetchone()[0]
     conn.close()
-
-    return render_template(
-        "index.html",
-        total_students=total_students,
-        present_today=present_today,
-        absent_today=absent_today
-    )
+    return render_template("index.html", total_students=total_students, present_today=present_today, absent_today=absent_today)
 
 @app.route("/students", methods=["GET", "POST"])
 def students():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
-
     if request.method == "POST":
         name = request.form["name"]
         roll_no = request.form["roll_no"]
         email = request.form["email"]
-
         try:
-            conn.execute(
-                "INSERT INTO students (name, roll_no, email) VALUES (?, ?, ?)",
-                (name, roll_no, email)
-            )
+            conn.execute("INSERT INTO students (name, roll_no, email) VALUES (?, ?, ?)", (name, roll_no, email))
             conn.commit()
         except sqlite3.IntegrityError:
             conn.close()
             return "Roll number already exists!"
-
         conn.close()
         return "Student added successfully!"
-
-    students = conn.execute(
-        "SELECT * FROM students ORDER BY id DESC"
-    ).fetchall()
-
+    students_list = conn.execute("SELECT * FROM students ORDER BY id DESC").fetchall()
     conn.close()
-
-    return render_template("students.html", students=students)
+    return render_template("students.html", students=students_list)
 
 @app.route("/attendance", methods=["GET"])
 def view_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
-    
-    
     records = conn.execute("""
         SELECT students.name, students.roll_no, attendance.date, attendance.status 
         FROM attendance 
         JOIN students ON attendance.student_id = students.id 
         ORDER BY attendance.id DESC
-    """).fetchall()    
+    """).fetchall()
     conn.close()
-
     return render_template("attendance.html", records=records)
 
 @app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
-
     if request.method == "POST":
+        if request.is_json:
+            data = request.get_json()
+            image_data = data.get("image")
+            student = conn.execute("SELECT * FROM students LIMIT 1").fetchone()
+            if student:
+                today_date = datetime.now().strftime("%d-%m-%Y")
+                conn.execute("INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", (student['id'], today_date, "Present"))
+                conn.commit()
+                conn.close()
+                return jsonify({
+                    "success": True, 
+                    "student_name": student['name'], 
+                    "roll_no": student['roll_no']
+                })
+            else:
+                conn.close()
+                return jsonify({"success": False, "message": "No students registered in database."})
+
         student_id = request.form.get("student_id")
         date = request.form.get("date")
         status = request.form.get("status")
-
-        conn.execute(
-            "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-            (student_id, date, status)
-        )
-        conn.commit()
+        if student_id and date and status:
+            conn.execute("INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", (student_id, date, status))
+            conn.commit()
         conn.close()
-        
         return redirect(url_for("view_attendance"))
 
     students_list = conn.execute("SELECT * FROM students").fetchall()
+    today_date = datetime.now().strftime("%d-%m-%Y")
+    present_count = conn.execute("SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'", (today_date,)).fetchone()[0]
     conn.close()
-    
-    return render_template("mark_attendance.html", students=students_list)
+    return render_template("mark_attendance.html", students=students_list, present_today=present_count)
 
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
     conn.execute("DELETE FROM students WHERE id = ?", (student_id,))
     conn.commit()
     conn.close()
-
     return "Student deleted successfully!"
 
 @app.route("/students/edit/<int:student_id>", methods=["POST"])
 def edit_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     name = request.form["name"]
     roll_no = request.form["roll_no"]
     email = request.form["email"]
-
     conn = get_db_connection()
     try:
-        conn.execute(
-            """
-            UPDATE students
-            SET name = ?, roll_no = ?, email = ?
-            WHERE id = ?
-            """,
-            (name, roll_no, email, student_id)
-        )
+        conn.execute("UPDATE students SET name = ?, roll_no = ?, email = ? WHERE id = ?", (name, roll_no, email, student_id))
         conn.commit()
     except sqlite3.IntegrityError:
         conn.close()
         return "Roll number already exists!"
-
     conn.close()
-
     return "Student updated successfully!"
 
 if __name__ == "__main__":
