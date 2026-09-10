@@ -6,6 +6,11 @@
 
     <title>Add Student - Smart Attendance</title>
 
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
     <link rel="stylesheet"
           href="{{ url_for('static', filename='styles.css') }}">
 </head>
@@ -30,16 +35,17 @@
     {% endif %}
 {% endwith %}
 
-    <nav class="navbar">
-        <div class="logo">
-            Smart Attendance
-        </div>
+   <nav class="navbar">
+    <div class="logo">
+        Smart Attendance
+    </div>
 
-        <div class="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/students">Students</a>
-            <a href="#">Attendance</a>
-        </div>
+    <div class="nav-links">
+        <a href="/">Dashboard</a>
+        <a href="/students">Students</a>
+        <a href="/attendance">Attendance</a>
+        <a href="/logout" style="color: #dc3545;">Logout</a>
+    </div>
     </nav>
 
 
@@ -92,7 +98,7 @@
 
         <h2 style="margin-top: 30px;">Student List</h2>
 
-<table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+<table class="student-table">
     <thead>
         <tr style="background-color: #007bff; color: white;">
             <th style="padding: 10px; border: 1px solid #ddd;">ID</th>

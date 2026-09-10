@@ -18,10 +18,10 @@
     </nav>
 
     <div class="container" style="max-width: 600px; margin-top: 30px; background: white; padding: 20px; border-radius: 8px;">
-        <h2>Mark Attendance</h2>
+        <h1 style="color: #111827 !important;">Mark Attendance</h1>
         <form action="/attendance/mark" method="POST">
             <div style="margin-bottom: 15px;">
-                <label for="student_id">Select Student</label>
+                <label for="student_id" style="color: #111827 !important;">Select Student</label>
                 <select name="student_id" id="student_id" required style="width: 100%; padding: 8px; margin-top: 5px;">
                     <option value="">-- Choose Student --</option>
                     {% for student in students %}
