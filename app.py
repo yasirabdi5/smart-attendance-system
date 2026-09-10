@@ -166,7 +166,6 @@ def students():
         conn.close()
         flash("Student added successfully!", "success")
         return redirect(url_for("students"))
-        return redirect(url_for("students"))
 
     students = conn.execute(
         "SELECT * FROM students ORDER BY id DESC"
