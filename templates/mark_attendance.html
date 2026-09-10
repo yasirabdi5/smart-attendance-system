@@ -1,0 +1,51 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance - Smart Attendance System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Smart Attendance</div>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/students">Students</a>
+            <a href="/attendance">Attendance</a>
+            <a href="/logout" style="color: #dc3545;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px; margin-top: 30px; background: white; padding: 20px; border-radius: 8px;">
+        <h2>Mark Attendance</h2>
+        <form action="/attendance/mark" method="POST">
+            <div style="margin-bottom: 15px;">
+                <label for="student_id">Select Student</label>
+                <select name="student_id" id="student_id" required style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="">-- Choose Student --</option>
+                    {% for student in students %}
+                        <option value="{{ student.id }}">{{ student.name }} (Roll: {{ student.roll_no }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="date">Date</label>
+                <input type="text" name="date" id="date" value="10-09-2026" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="status">Status</label>
+                <select name="status" id="status" required style="width: 100%; padding: 8px; margin-top: 5px;">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                </select>
+            </div>
+
+            <button type="submit" class="button" style="background-color: #28a745; border: none; padding: 10px 15px; color: white; cursor: pointer; border-radius: 4px;">Submit Attendance</button>
+        </form>
+    </div>
+
+</body>
+</html>
