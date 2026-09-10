@@ -265,27 +265,134 @@ def view_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
 
+    selected_date = request.args.get("date")
+
     conn = get_db_connection()
 
-    attendance = conn.execute("""
-        SELECT
-            attendance.id,
-            students.name,
-            students.roll_no,
-            attendance.date,
-            attendance.status
-        FROM attendance
-        JOIN students
-        ON attendance.student_id = students.id
-        ORDER BY attendance.date DESC
-    """).fetchall()
+    if selected_date:
+        attendance = conn.execute("""
+            SELECT
+                attendance.id,
+                students.name,
+                students.roll_no,
+                attendance.date,
+                attendance.status
+            FROM attendance
+            JOIN students
+            ON attendance.student_id = students.id
+            WHERE attendance.date = ?
+            ORDER BY students.roll_no
+        """, (selected_date,)).fetchall()
+    else:
+        attendance = conn.execute("""
+            SELECT
+                attendance.id,
+                students.name,
+                students.roll_no,
+                attendance.date,
+                attendance.status
+            FROM attendance
+            JOIN students
+            ON attendance.student_id = students.id
+            ORDER BY attendance.date DESC
+        """).fetchall()
 
     conn.close()
 
     return render_template(
         "attendance.html",
-        attendance=attendance
+        attendance=attendance,
+        selected_date=selected_date
     )
+
+@app.route("/attendance/percentage")
+def attendance_percentage():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    students = conn.execute("""
+        SELECT
+            students.id,
+            students.name,
+            students.roll_no,
+            COUNT(attendance.id) AS total_days,
+            SUM(
+                CASE
+                    WHEN attendance.status = 'Present' THEN 1
+                    ELSE 0
+                END
+            ) AS present_days
+        FROM students
+        LEFT JOIN attendance
+        ON students.id = attendance.student_id
+        GROUP BY students.id
+        ORDER BY students.id
+    """).fetchall()
+
+    conn.close()
+
+    result = []
+
+    for student in students:
+        total_days = student["total_days"]
+        present_days = student["present_days"] or 0
+
+        if total_days > 0:
+            percentage = (present_days / total_days) * 100
+        else:
+            percentage = 0
+
+        result.append({
+            "name": student["name"],
+            "roll_no": student["roll_no"],
+            "total_days": total_days,
+            "present_days": present_days,
+            "percentage": round(percentage, 2)
+        })
+
+    return result
+
+@app.route("/attendance/update/<int:attendance_id>", methods=["POST"])
+def update_attendance(attendance_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    status = request.form["status"]
+
+    conn = get_db_connection()
+
+    conn.execute(
+        """
+        UPDATE attendance
+        SET status = ?
+        WHERE id = ?
+        """,
+        (status, attendance_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return "Attendance updated successfully!"
+
+@app.route("/attendance/delete/<int:attendance_id>", methods=["POST"])
+def delete_attendance(attendance_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    conn.execute(
+        "DELETE FROM attendance WHERE id = ?",
+        (attendance_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return "Attendance deleted successfully!"
 
 if __name__ == "__main__":
     init_db()
