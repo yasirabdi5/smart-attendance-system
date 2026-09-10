@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Attendance Report</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Smart Attendance</div>
+
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/students">Students</a>
+            <a href="/attendance">Attendance</a>
+            <a href="/logout" style="color: #dc3545;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container"
+         style="max-width: 900px; margin-top: 30px;">
+
+        <h2>Attendance Report</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Total Students</h3>
+                <p>{{ total_students }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Total Records</h3>
+                <p>{{ total_records }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Present Records</h3>
+                <p>{{ present_records }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Absent Records</h3>
+                <p>{{ absent_records }}</p>
+            </div>
+
+            <div class="card">
+                <h3>Overall Attendance</h3>
+                <p>{{ overall_percentage }}%</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

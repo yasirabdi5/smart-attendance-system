@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 import sqlite3
 from datetime import datetime
 
@@ -164,7 +164,9 @@ def students():
             return "Roll number already exists!"
 
         conn.close()
-        return "Student added successfully!"
+        flash("Student added successfully!", "success")
+        return redirect(url_for("students"))
+        return redirect(url_for("students"))
 
     students = conn.execute(
         "SELECT * FROM students ORDER BY id DESC"
@@ -304,6 +306,97 @@ def delete_attendance(attendance_id):
 
     return redirect(url_for("view_attendance"))
 
+@app.route("/attendance/percentage")
+def attendance_percentage():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    students = conn.execute("""
+        SELECT
+            students.id,
+            students.name,
+            students.roll_no,
+            COUNT(attendance.id) AS total_days,
+            SUM(
+                CASE
+                    WHEN attendance.status = 'Present' THEN 1
+                    ELSE 0
+                END
+            ) AS present_days
+        FROM students
+        LEFT JOIN attendance
+        ON students.id = attendance.student_id
+        GROUP BY students.id
+        ORDER BY students.id
+    """).fetchall()
+
+    conn.close()
+
+    result = []
+
+    for student in students:
+        total_days = student["total_days"]
+        present_days = student["present_days"] or 0
+
+        if total_days > 0:
+            percentage = (present_days / total_days) * 100
+        else:
+            percentage = 0
+
+        result.append({
+            "name": student["name"],
+            "roll_no": student["roll_no"],
+            "total_days": total_days,
+            "present_days": present_days,
+            "percentage": round(percentage, 2)
+        })
+
+    return render_template(
+    "attendance_percentage.html",
+    students=result
+    )
+
+@app.route("/attendance/report")
+def attendance_report():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    total_students = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    total_records = conn.execute(
+        "SELECT COUNT(*) FROM attendance"
+    ).fetchone()[0]
+
+    present_records = conn.execute(
+        "SELECT COUNT(*) FROM attendance WHERE status = 'Present'"
+    ).fetchone()[0]
+
+    absent_records = conn.execute(
+        "SELECT COUNT(*) FROM attendance WHERE status = 'Absent'"
+    ).fetchone()[0]
+
+    conn.close()
+
+    if total_records > 0:
+        overall_percentage = (present_records / total_records) * 100
+    else:
+        overall_percentage = 0
+
+    return render_template(
+        "attendance_report.html",
+        total_students=total_students,
+        total_records=total_records,
+        present_records=present_records,
+        absent_records=absent_records,
+        overall_percentage=round(overall_percentage, 2)
+    )
+
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if not session.get("admin_logged_in"):
@@ -314,35 +407,56 @@ def delete_student(student_id):
     conn.commit()
     conn.close()
 
-    return "Student deleted successfully!"
+    flash("Student deleted successfully!", "success")
+    return redirect(url_for("students"))
 
-@app.route("/students/edit/<int:student_id>", methods=["POST"])
+@app.route("/students/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
 
-    name = request.form["name"]
-    roll_no = request.form["roll_no"]
-    email = request.form["email"]
-
     conn = get_db_connection()
-    try:
-        conn.execute(
-            """
-            UPDATE students
-            SET name = ?, roll_no = ?, email = ?
-            WHERE id = ?
-            """,
-            (name, roll_no, email, student_id)
-        )
-        conn.commit()
-    except sqlite3.IntegrityError:
+
+    if request.method == "POST":
+        name = request.form["name"]
+        roll_no = request.form["roll_no"]
+        email = request.form["email"]
+
+        try:
+            conn.execute(
+                """
+                UPDATE students
+                SET name = ?, roll_no = ?, email = ?
+                WHERE id = ?
+                """,
+                (name, roll_no, email, student_id)
+            )
+            conn.commit()
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            flash("Roll number already exists!", "error")
+            return redirect(url_for("edit_student", student_id=student_id))
+
         conn.close()
-        return "Roll number already exists!"
+
+        flash("Student updated successfully!", "success")
+        return redirect(url_for("students"))
+
+    student = conn.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (student_id,)
+    ).fetchone()
 
     conn.close()
 
-    return "Student updated successfully!"
+    if student is None:
+        return "Student not found!"
+
+    return render_template(
+        "edit_student.html",
+        student=student
+    )
 
 
 if __name__ == "__main__":
