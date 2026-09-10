@@ -179,18 +179,46 @@ def view_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
 
+    selected_date = request.args.get("date")
+
     conn = get_db_connection()
-    
-    
-    records = conn.execute("""
-        SELECT students.name, students.roll_no, attendance.date, attendance.status 
-        FROM attendance 
-        JOIN students ON attendance.student_id = students.id 
-        ORDER BY attendance.id DESC
-    """).fetchall()    
+
+    if selected_date:
+        attendance = conn.execute("""
+            SELECT
+                attendance.id,
+                students.name,
+                students.roll_no,
+                attendance.date,
+                attendance.status
+            FROM attendance
+            JOIN students
+            ON attendance.student_id = students.id
+            WHERE attendance.date = ?
+            ORDER BY students.roll_no
+        """, (selected_date,)).fetchall()
+
+    else:
+        attendance = conn.execute("""
+            SELECT
+                attendance.id,
+                students.name,
+                students.roll_no,
+                attendance.date,
+                attendance.status
+            FROM attendance
+            JOIN students
+            ON attendance.student_id = students.id
+            ORDER BY attendance.date DESC
+        """).fetchall()
+
     conn.close()
 
-    return render_template("attendance.html", records=records)
+    return render_template(
+        "attendance.html",
+        attendance=attendance,
+        selected_date=selected_date
+    )
 
 @app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
@@ -204,19 +232,60 @@ def mark_attendance():
         date = request.form.get("date")
         status = request.form.get("status")
 
-        conn.execute(
-            "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-            (student_id, date, status)
-        )
-        conn.commit()
+        # Convert DD-MM-YYYY to YYYY-MM-DD
+        try:
+            date = datetime.strptime(date, "%d-%m-%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+        try:
+            conn.execute(
+                """
+                INSERT INTO attendance (student_id, date, status)
+                VALUES (?, ?, ?)
+                """,
+                (student_id, date, status)
+            )
+            conn.commit()
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            return "Attendance already marked for this student on this date!"
+
         conn.close()
-        
+
         return redirect(url_for("view_attendance"))
 
     students_list = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
-    
-    return render_template("mark_attendance.html", students=students_list)
+
+    return render_template(
+        "mark_attendance.html",
+        students=students_list
+    )
+
+@app.route("/attendance/update/<int:attendance_id>", methods=["POST"])
+def update_attendance(attendance_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    status = request.form.get("status")
+
+    conn = get_db_connection()
+
+    conn.execute(
+        """
+        UPDATE attendance
+        SET status = ?
+        WHERE id = ?
+        """,
+        (status, attendance_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("view_attendance"))
 
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
