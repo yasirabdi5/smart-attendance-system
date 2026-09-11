@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+=======
+from flask import Flask, render_template, request, session, redirect, url_for, flash
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
 import sqlite3
 import base64
 from datetime import datetime
@@ -36,7 +40,8 @@ def init_db():
             student_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             status TEXT NOT NULL,
-            FOREIGN KEY (student_id) REFERENCES students (id)
+UNIQUE(student_id, date),
+FOREIGN KEY (student_id) REFERENCES students(id)
         )
     """)
     conn.commit()
@@ -87,10 +92,39 @@ def home():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
     conn = get_db_connection()
+<<<<<<< HEAD
     total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     today_str = datetime.now().strftime("%d-%m-%Y")
     present_today = conn.execute("SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'", (today_str,)).fetchone()[0]
     absent_today = conn.execute("SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Absent'", (today_str,)).fetchone()[0]
+=======
+
+    # Total number of students
+    total_students = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    # Number of students present today
+    present_today = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM attendance
+        WHERE date = DATE('now')
+        AND status = 'Present'
+        """
+    ).fetchone()[0]
+
+    # Number of students absent today
+    absent_today = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM attendance
+        WHERE date = DATE('now')
+        AND status = 'Absent'
+        """
+    ).fetchone()[0]
+
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
     conn.close()
     return render_template("index.html", total_students=total_students, present_today=present_today, absent_today=absent_today)
 
@@ -110,8 +144,18 @@ def students():
             conn.close()
             return "Roll number already exists!"
         conn.close()
+<<<<<<< HEAD
         return "Student added successfully!"
     students_list = conn.execute("SELECT * FROM students ORDER BY id DESC").fetchall()
+=======
+        flash("Student added successfully!", "success")
+        return redirect(url_for("students"))
+
+    students = conn.execute(
+        "SELECT * FROM students ORDER BY id DESC"
+    ).fetchall()
+
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
     conn.close()
     return render_template("students.html", students=students_list)
 
@@ -119,6 +163,7 @@ def students():
 def view_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
+<<<<<<< HEAD
     conn = get_db_connection()
     records = conn.execute("""
         SELECT students.name, students.roll_no, attendance.date, attendance.status 
@@ -128,6 +173,49 @@ def view_attendance():
     """).fetchall()
     conn.close()
     return render_template("attendance.html", records=records)
+=======
+
+    selected_date = request.args.get("date")
+
+    conn = get_db_connection()
+
+    if selected_date:
+        attendance = conn.execute("""
+            SELECT
+                attendance.id,
+                students.name,
+                students.roll_no,
+                attendance.date,
+                attendance.status
+            FROM attendance
+            JOIN students
+            ON attendance.student_id = students.id
+            WHERE attendance.date = ?
+            ORDER BY students.roll_no
+        """, (selected_date,)).fetchall()
+
+    else:
+        attendance = conn.execute("""
+            SELECT
+                attendance.id,
+                students.name,
+                students.roll_no,
+                attendance.date,
+                attendance.status
+            FROM attendance
+            JOIN students
+            ON attendance.student_id = students.id
+            ORDER BY attendance.date DESC
+        """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "attendance.html",
+        attendance=attendance,
+        selected_date=selected_date
+    )
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
 
 @app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
@@ -156,17 +244,182 @@ def mark_attendance():
         student_id = request.form.get("student_id")
         date = request.form.get("date")
         status = request.form.get("status")
+<<<<<<< HEAD
         if student_id and date and status:
             conn.execute("INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", (student_id, date, status))
             conn.commit()
         conn.close()
+=======
+
+        # Convert DD-MM-YYYY to YYYY-MM-DD
+        try:
+            date = datetime.strptime(date, "%d-%m-%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+
+        try:
+            conn.execute(
+                """
+                INSERT INTO attendance (student_id, date, status)
+                VALUES (?, ?, ?)
+                """,
+                (student_id, date, status)
+            )
+            conn.commit()
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            return "Attendance already marked for this student on this date!"
+
+        conn.close()
+
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
         return redirect(url_for("view_attendance"))
 
     students_list = conn.execute("SELECT * FROM students").fetchall()
     today_date = datetime.now().strftime("%d-%m-%Y")
     present_count = conn.execute("SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'", (today_date,)).fetchone()[0]
     conn.close()
+<<<<<<< HEAD
     return render_template("mark_attendance.html", students=students_list, present_today=present_count)
+=======
+
+    return render_template(
+        "mark_attendance.html",
+        students=students_list
+    )
+
+@app.route("/attendance/update/<int:attendance_id>", methods=["POST"])
+def update_attendance(attendance_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    status = request.form.get("status")
+
+    conn = get_db_connection()
+
+    conn.execute(
+        """
+        UPDATE attendance
+        SET status = ?
+        WHERE id = ?
+        """,
+        (status, attendance_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("view_attendance"))
+
+@app.route("/attendance/delete/<int:attendance_id>", methods=["POST"])
+def delete_attendance(attendance_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    conn.execute(
+        "DELETE FROM attendance WHERE id = ?",
+        (attendance_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("view_attendance"))
+
+@app.route("/attendance/percentage")
+def attendance_percentage():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    students = conn.execute("""
+        SELECT
+            students.id,
+            students.name,
+            students.roll_no,
+            COUNT(attendance.id) AS total_days,
+            SUM(
+                CASE
+                    WHEN attendance.status = 'Present' THEN 1
+                    ELSE 0
+                END
+            ) AS present_days
+        FROM students
+        LEFT JOIN attendance
+        ON students.id = attendance.student_id
+        GROUP BY students.id
+        ORDER BY students.id
+    """).fetchall()
+
+    conn.close()
+
+    result = []
+
+    for student in students:
+        total_days = student["total_days"]
+        present_days = student["present_days"] or 0
+
+        if total_days > 0:
+            percentage = (present_days / total_days) * 100
+        else:
+            percentage = 0
+
+        result.append({
+            "name": student["name"],
+            "roll_no": student["roll_no"],
+            "total_days": total_days,
+            "present_days": present_days,
+            "percentage": round(percentage, 2)
+        })
+
+    return render_template(
+    "attendance_percentage.html",
+    students=result
+    )
+
+@app.route("/attendance/report")
+def attendance_report():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    total_students = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    total_records = conn.execute(
+        "SELECT COUNT(*) FROM attendance"
+    ).fetchone()[0]
+
+    present_records = conn.execute(
+        "SELECT COUNT(*) FROM attendance WHERE status = 'Present'"
+    ).fetchone()[0]
+
+    absent_records = conn.execute(
+        "SELECT COUNT(*) FROM attendance WHERE status = 'Absent'"
+    ).fetchone()[0]
+
+    conn.close()
+
+    if total_records > 0:
+        overall_percentage = (present_records / total_records) * 100
+    else:
+        overall_percentage = 0
+
+    return render_template(
+        "attendance_report.html",
+        total_students=total_students,
+        total_records=total_records,
+        present_records=present_records,
+        absent_records=absent_records,
+        overall_percentage=round(overall_percentage, 2)
+    )
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
 
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
@@ -176,12 +429,19 @@ def delete_student(student_id):
     conn.execute("DELETE FROM students WHERE id = ?", (student_id,))
     conn.commit()
     conn.close()
+<<<<<<< HEAD
     return "Student deleted successfully!"
+=======
 
-@app.route("/students/edit/<int:student_id>", methods=["POST"])
+    flash("Student deleted successfully!", "success")
+    return redirect(url_for("students"))
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
+
+@app.route("/students/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
+<<<<<<< HEAD
     name = request.form["name"]
     roll_no = request.form["roll_no"]
     email = request.form["email"]
@@ -194,6 +454,52 @@ def edit_student(student_id):
         return "Roll number already exists!"
     conn.close()
     return "Student updated successfully!"
+=======
+
+    conn = get_db_connection()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        roll_no = request.form["roll_no"]
+        email = request.form["email"]
+
+        try:
+            conn.execute(
+                """
+                UPDATE students
+                SET name = ?, roll_no = ?, email = ?
+                WHERE id = ?
+                """,
+                (name, roll_no, email, student_id)
+            )
+            conn.commit()
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            flash("Roll number already exists!", "error")
+            return redirect(url_for("edit_student", student_id=student_id))
+
+        conn.close()
+
+        flash("Student updated successfully!", "success")
+        return redirect(url_for("students"))
+
+    student = conn.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (student_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if student is None:
+        return "Student not found!"
+
+    return render_template(
+        "edit_student.html",
+        student=student
+    )
+
+>>>>>>> 4915fc281af98f2b9e8db3eb3a08ff80c0ea35da
 
 if __name__ == "__main__":
     init_db()
