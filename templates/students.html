@@ -3,171 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Add Student - Smart Attendance</title>
-
-    <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='styles.css') }}">
+    <title>Manage Students</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-
 <body>
+    <div class="container" style="padding: 20px;">
+        <h2>Student Management Dashboard</h2>
+        <a href="{{ url_for('home') }}" class="btn" style="background-color: #6c757d; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">Back to Dashboard</a>
+        <br><br>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div style="
-                background-color: #d4edda;
-                color: #155724;
-                padding: 10px;
-                margin: 15px auto;
-                max-width: 900px;
-                border-radius: 5px;
-                border: 1px solid #c3e6cb;
-            ">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="padding: 10px; margin-bottom: 15px; background-color: {% if category == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if category == 'error' %}#721c24{% else %}#155724{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-   <nav class="navbar">
-    <div class="logo">
-        Smart Attendance
+        <!-- Add New Student Form with Live Webcam Capture -->
+        <div style="margin-bottom: 30px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+            <h3>Add New Student with Live Photo</h3>
+            <form id="add-student-form">
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="name" placeholder="Student Name" required style="padding: 8px; width: 300px;"><br>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="roll_no" placeholder="Roll Number" required style="padding: 8px; width: 300px;"><br>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="email" id="email" placeholder="Email Address" required style="padding: 8px; width: 300px;"><br>
+                </div>
+                
+                <h4>Capture Reference Face Photo:</h4>
+                <video id="reg-video" width="320" height="240" autoplay style="border: 1px solid #ccc; border-radius: 5px;"></video><br>
+                <button type="button" id="snap-btn" class="btn" style="padding: 8px 15px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px;">Capture Photo</button>
+                <canvas id="reg-canvas" width="320" height="240" style="display: none;"></canvas>
+                <p id="photo-status" style="color: green; font-weight: bold; margin-top: 5px;"></p>
+                
+                <br>
+                <button type="submit" class="btn" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">Register Student</button>
+            </form>
+        </div>
+
+        <!-- Registered Students Table -->
+        <h3>Registered Students List</h3>
+        <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background-color: #f1f1f1;">
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Roll No</th>
+                    <th>Email</th>
+                    <th>Photo</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if students %}
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.id }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.roll_no }}</td>
+                        <td>{{ student.email }}</td>
+                        <td>
+                            {% if student.photo_path %}
+                                <img src="/{{ student.photo_path }}" alt="Photo" width="50" height="50" style="border-radius: 50%;">
+                            {% else %}
+                                No Photo
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_student', student_id=student.id) }}" style="color: blue; text-decoration: none; margin-right: 10px;">Edit</a>
+                            
+                            <!-- Delete Form -->
+                            <form action="{{ url_for('delete_student', student_id=student.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this student?');">
+                                <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center;">No students registered yet.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 
-    <div class="nav-links">
-        <a href="/">Dashboard</a>
-        <a href="/students">Students</a>
-        <a href="/attendance">Attendance</a>
-        <a href="/logout" style="color: #dc3545;">Logout</a>
-    </div>
-    </nav>
+    <script>
+        const regVideo = document.getElementById('reg-video');
+        const regCanvas = document.getElementById('reg-canvas');
+        const snapBtn = document.getElementById('snap-btn');
+        const photoStatus = document.getElementById('photo-status');
+        let capturedImageData = null;
 
+        // Start webcam for student registration
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { regVideo.srcObject = stream; })
+            .catch(err => { console.error("Webcam error:", err); });
 
-    <main class="container">
+        // Capture snapshot button click
+        snapBtn.addEventListener('click', () => {
+            const context = regCanvas.getContext('2d');
+            context.drawImage(regVideo, 0, 0, regCanvas.width, regCanvas.height);
+            capturedImageData = regCanvas.toDataURL('image/jpeg');
+            photoStatus.innerText = "Photo captured successfully!";
+        });
 
-        <h1>Add Student</h1>
+        // Submit form with JSON data (including base64 photo)
+        document.getElementById('add-student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!capturedImageData) {
+                alert("Please capture the student's photo first!");
+                return;
+            }
 
-        <p class="subtitle">
-            Register a new student in the system.
-        </p>
+            const data = {
+                name: document.getElementById('name').value,
+                roll_no: document.getElementById('roll_no').value,
+                email: document.getElementById('email').value,
+                image: capturedImageData
+            };
 
-
-        <form method="POST" class="student-form">
-
-            <label for="name">Student Name</label>
-            <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Enter student name"
-                required
-            >
-
-
-            <label for="roll_no">Roll Number</label>
-            <input
-                type="text"
-                id="roll_no"
-                name="roll_no"
-                placeholder="Enter roll number"
-                required
-            >
-
-
-            <label for="email">Email</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Enter email"
-                required
-            >
-
-
-            <button type="submit" class="button">
-                Add Student
-            </button>
-
-        </form>
-
-        <h2 style="margin-top: 30px;">Student List</h2>
-
-<table class="student-table">
-    <thead>
-        <tr style="background-color: #007bff; color: white;">
-            <th style="padding: 10px; border: 1px solid #ddd;">ID</th>
-            <th style="padding: 10px; border: 1px solid #ddd;">Name</th>
-            <th style="padding: 10px; border: 1px solid #ddd;">Roll No</th>
-            <th style="padding: 10px; border: 1px solid #ddd;">Email</th>
-            <th style="padding: 10px; border: 1px solid #ddd;">Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        {% for student in students %}
-        <tr>
-            <td style="padding: 10px; border: 1px solid #ddd;">
-                {{ student.id }}
-            </td>
-
-            <td style="padding: 10px; border: 1px solid #ddd;">
-                {{ student.name }}
-            </td>
-
-            <td style="padding: 10px; border: 1px solid #ddd;">
-                {{ student.roll_no }}
-            </td>
-
-            <td style="padding: 10px; border: 1px solid #ddd;">
-                {{ student.email }}
-            </td>
-
-           <td style="padding: 10px; border: 1px solid #ddd;">
-
-    <a href="/students/edit/{{ student.id }}"
-       style="
-           background-color: #ffc107;
-           color: black;
-           padding: 6px 10px;
-           text-decoration: none;
-           border-radius: 4px;
-       ">
-        Edit
-    </a>
-
-    <form action="/students/delete/{{ student.id }}"
-          method="POST"
-          style="display: inline-block; margin-left: 5px;"
-          onsubmit="return confirm('Are you sure you want to delete this student?');">
-
-        <button type="submit"
-                style="
-                    background-color: #dc3545;
-                    color: white;
-                    border: none;
-                    padding: 6px 10px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                ">
-            Delete
-        </button>
-
-    </form>
-
-</td>
-        </tr>
-
-        {% endfor %}
-    </tbody>
-</table>
-
-    </main>
-
+            fetch("/students", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(response => {
+                alert(response.message);
+                if (response.success) {
+                    window.location.reload();
+                }
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("An error occurred while adding student.");
+            });
+        });
+    </script>
 </body>
 </html>
