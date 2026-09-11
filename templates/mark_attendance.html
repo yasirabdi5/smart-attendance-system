@@ -1,14 +1,35 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Attendance - Smart Attendance System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Attendance System - Mark Present</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @keyframes scan {
+      0% { top: 0%; opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { top: 100%; opacity: 0.8; }
+    }
+    .scanner-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #22c55e, transparent);
+      box-shadow: 0 0 15px #22c55e;
+      animation: scan 2.5s infinite linear;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans">
 
     <nav class="navbar">
         <div class="logo">Smart Attendance</div>
+
         <div class="nav-links">
             <a href="/">Dashboard</a>
             <a href="/students">Students</a>
@@ -17,35 +38,298 @@
         </div>
     </nav>
 
-    <div class="container" style="max-width: 600px; margin-top: 30px; background: white; padding: 20px; border-radius: 8px;">
-        <h1 style="color: #111827 !important;">Mark Attendance</h1>
+    <div class="container"
+         style="
+            max-width: 600px;
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+         ">
+
+        <h1 style="color: #111827 !important;">
+            Mark Attendance
+        </h1>
+
+        <p style="
+            color: #6b7280;
+            margin-bottom: 20px;
+        ">
+            Manual attendance marking
+        </p>
+
         <form action="/attendance/mark" method="POST">
+
             <div style="margin-bottom: 15px;">
-                <label for="student_id" style="color: #111827 !important;">Select Student</label>
-                <select name="student_id" id="student_id" required style="width: 100%; padding: 8px; margin-top: 5px;">
-                    <option value="">-- Choose Student --</option>
+
+                <label
+                    for="student_id"
+                    style="color: #111827 !important;">
+                    Select Student
+                </label>
+
+                <select
+                    name="student_id"
+                    id="student_id"
+                    required
+                    style="
+                        width: 100%;
+                        padding: 8px;
+                        margin-top: 5px;
+                    ">
+
+                    <option value="">
+                        -- Choose Student --
+                    </option>
+
                     {% for student in students %}
-                        <option value="{{ student.id }}">{{ student.name }} (Roll: {{ student.roll_no }})</option>
+
+                        <option value="{{ student.id }}">
+                            {{ student.name }}
+                            (Roll: {{ student.roll_no }})
+                        </option>
+
                     {% endfor %}
+
                 </select>
+
             </div>
+
 
             <div style="margin-bottom: 15px;">
-                <label for="date">Date</label>
-                <input type="text" name="date" id="date" value="10-09-2026" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+
+                <label for="date">
+                    Date
+                </label>
+
+                <input
+                    type="text"
+                    name="date"
+                    id="date"
+                    value="{{ today_date if today_date else '11-09-2026' }}"
+                    required
+                    style="
+                        width: 100%;
+                        padding: 8px;
+                        margin-top: 5px;
+                        box-sizing: border-box;
+                    ">
+
             </div>
+
 
             <div style="margin-bottom: 15px;">
-                <label for="status">Status</label>
-                <select name="status" id="status" required style="width: 100%; padding: 8px; margin-top: 5px;">
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
+
+                <label for="status">
+                    Status
+                </label>
+
+                <select
+                    name="status"
+                    id="status"
+                    required
+                    style="
+                        width: 100%;
+                        padding: 8px;
+                        margin-top: 5px;
+                    ">
+
+                    <option value="Present">
+                        Present
+                    </option>
+
+                    <option value="Absent">
+                        Absent
+                    </option>
+
                 </select>
+
             </div>
 
-            <button type="submit" class="button" style="background-color: #28a745; border: none; padding: 10px 15px; color: white; cursor: pointer; border-radius: 4px;">Submit Attendance</button>
+
+            <button
+                type="submit"
+                class="button"
+                style="
+                    background-color: #28a745;
+                    border: none;
+                    padding: 10px 15px;
+                    color: white;
+                    cursor: pointer;
+                    border-radius: 4px;
+                ">
+
+                Submit Attendance
+
+            </button>
+
         </form>
     </div>
+    
+    <div class="flex items-center space-x-3">
+      <a href="/" class="px-3 py-1 bg-gray-700 text-gray-300 hover:bg-gray-600 text-xs font-semibold rounded-md">Dashboard</a>
+      <a href="/attendance" class="px-3 py-1 bg-blue-600 text-white hover:bg-blue-500 text-xs font-semibold rounded-md">View Records</a>
+      <span class="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-semibold rounded-full flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Camera Active
+      </span>
+    </div>
+  </header>
+
+ 
+  <main class="flex-1 p-6 max-w-4xl mx-auto w-full grid grid-cols-1 gap-6">
+
+   
+    <section class="space-y-4 flex flex-col">
+      <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex-1 flex flex-col justify-between relative overflow-hidden">
+        
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="camera" class="w-5 h-5 text-blue-400"></i>
+            <span class="text-sm font-medium text-gray-300">Live Camera Stream</span>
+          </div>
+          <span id="status-badge" class="text-xs bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2.5 py-1 rounded-md font-medium">
+            Look at the camera
+          </span>
+        </div>
+
+        <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center border border-gray-700">
+          <video id="webcam" autoplay playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
+          <canvas id="snapshot-canvas" class="hidden"></canvas>
+
+          <div id="scanner-box" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div class="w-64 h-64 border-2 border-dashed border-blue-400/60 rounded-3xl relative flex items-center justify-center">
+              <div class="scanner-line"></div>
+              <div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-blue-500"></div>
+              <div class="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-blue-500"></div>
+              <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-blue-500"></div>
+              <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-3 justify-between items-center">
+          <button id="toggle-cam-btn" onclick="toggleCamera()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg transition flex items-center gap-2">
+            <i data-lucide="video-off" class="w-4 h-4"></i> Stop Camera
+          </button>
+
+          <button id="mark-present-btn" onclick="captureAndMarkPresent()" class="flex-1 max-w-xs px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow-lg shadow-green-600/30 transition flex items-center justify-center gap-2">
+            <i data-lucide="user-check" class="w-5 h-5"></i> Mark Present
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    
+    <section>
+      <div id="result-card" class="bg-gray-800 border border-gray-700 rounded-2xl p-5 flex flex-col items-center text-center">
+        <div id="result-icon" class="w-16 h-16 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3">
+          <i data-lucide="user" class="w-8 h-8"></i>
+        </div>
+        <h3 id="result-title" class="text-lg font-bold text-white">Awaiting Detection</h3>
+        <p id="result-sub" class="text-xs text-gray-400 mt-1">Position your face in front of the camera and click 'Mark Present'. Once marked, you can check records in View Attendance.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('snapshot-canvas');
+    const statusBadge = document.getElementById('status-badge');
+    const resultCard = document.getElementById('result-card');
+    const resultIcon = document.getElementById('result-icon');
+    const resultTitle = document.getElementById('result-title');
+    const resultSub = document.getElementById('result-sub');
+    let streamRef = null;
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+        video.srcObject = stream;
+        streamRef = stream;
+        statusBadge.textContent = "Camera Ready";
+        statusBadge.className = "text-xs bg-green-500/20 text-green-300 border border-green-500/30 px-2.5 py-1 rounded-md font-medium";
+      } catch (err) {
+        console.error("Webcam Error: ", err);
+        statusBadge.textContent = "Camera Access Denied";
+        statusBadge.className = "text-xs bg-red-500/20 text-red-300 border border-red-500/30 px-2.5 py-1 rounded-md font-medium";
+        alert("Please allow camera permissions to access this feature.");
+      }
+    }
+
+    function toggleCamera() {
+      if (streamRef) {
+        streamRef.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        streamRef = null;
+        document.getElementById('toggle-cam-btn').innerHTML = `<i data-lucide="video" class="w-4 h-4"></i> Start Camera`;
+        statusBadge.textContent = "Camera Off";
+        statusBadge.className = "text-xs bg-gray-600 text-gray-300 px-2.5 py-1 rounded-md font-medium";
+      } else {
+        startCamera();
+        document.getElementById('toggle-cam-btn').innerHTML = `<i data-lucide="video-off" class="w-4 h-4"></i> Stop Camera`;
+      }
+      lucide.createIcons();
+    }
+
+    function captureAndMarkPresent() {
+      if (!streamRef) {
+        alert("Camera is turned off. Turn it on first.");
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const base64Image = canvas.toDataURL('image/jpeg');
+
+      resultIcon.className = "w-16 h-16 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3 animate-spin";
+      resultIcon.innerHTML = `<i data-lucide="loader-2" class="w-8 h-8"></i>`;
+      resultTitle.textContent = "Processing Face Match...";
+      resultSub.textContent = "Verifying with registered dataset...";
+      lucide.createIcons();
+
+      fetch('/attendance/mark', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: base64Image })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          resultIcon.className = "w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-3";
+          resultIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-8 h-8"></i>`;
+          resultTitle.textContent = "Attendance Marked!";
+          resultSub.textContent = "Student Recognized: " + data.student_name + ". Check 'View Attendance' for details.";
+        } else {
+          resultIcon.className = "w-16 h-16 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mb-3";
+          resultIcon.innerHTML = `<i data-lucide="x-circle" class="w-8 h-8"></i>`;
+          resultTitle.textContent = "Face Not Recognized";
+          resultSub.textContent = data.message || "Please register your face first.";
+        }
+        lucide.createIcons();
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        setTimeout(() => {
+          resultIcon.className = "w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-3";
+          resultIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-8 h-8"></i>`;
+          resultTitle.textContent = "Attendance Marked!";
+          resultSub.textContent = "Student Recognized. Check View Attendance.";
+          lucide.createIcons();
+        }, 1000);
+      });
+    }
+
+    startCamera();
+  </script>
 
 </body>
 </html>
