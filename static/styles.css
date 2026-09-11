@@ -535,3 +535,41 @@ body {
 .student-table tbody tr:hover {
     background: #172033;
 }
+/* =========================
+   Attendance Table
+========================= */
+
+.attendance-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 18px;
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.attendance-table th {
+    background: #172554;
+    color: #bfdbfe;
+    padding: 13px 12px;
+    text-align: left;
+    font-size: 13px;
+    border-bottom: 1px solid #1f2937;
+}
+
+.attendance-table td {
+    padding: 13px 12px;
+    color: #d1d5db;
+    font-size: 13px;
+    border-bottom: 1px solid #1f2937;
+}
+
+.attendance-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.attendance-table tbody tr:hover {
+    background: #172033;
+}
