@@ -152,7 +152,6 @@ def student_logout():
 
 # --- ADMIN DASHBOARD ---
 @app.route("/")
-@app.route("/")
 def home():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
@@ -199,8 +198,11 @@ def home():
         total_students=total_students,
         present_today=present_today,
         absent_today=absent_today,
-        attendance_percentage=attendance_percentage
-    )
+        attendance_percentage=attendance_percentage,
+        chart_present=present_today,
+        chart_absent=absent_today
+)
+
 # --- STUDENT DASHBOARD ---
 @app.route("/student/dashboard")
 def student_dashboard():

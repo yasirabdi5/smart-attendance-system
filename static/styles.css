@@ -623,3 +623,26 @@ body {
     }
 
 }
+/* Attendance Chart */
+
+.chart-section {
+    margin-top: 25px;
+}
+
+.chart-card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 16px;
+    padding: 24px;
+    min-height: 350px;
+}
+
+.chart-card h3 {
+    color: #f9fafb;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.chart-card canvas {
+    max-height: 280px;
+}
