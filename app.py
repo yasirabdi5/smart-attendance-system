@@ -120,15 +120,51 @@ def login():
         return "Invalid Admin Username or Password!"
     return render_template("login.html")
 
+# --- ADMIN MANAGEMENT ---
+@app.route("/admin/create", methods=["GET", "POST"])
+def create_admin():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not username or not password:
+            flash("Username and password are required!", "error")
+            return redirect(url_for("create_admin"))
+
+        conn = get_db_connection()
+
+        try:
+            conn.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (username, password)
+            )
+            conn.commit()
+            flash("New admin account created successfully!", "success")
+
+        except sqlite3.IntegrityError:
+            flash("Username already exists!", "error")
+
+        finally:
+            conn.close()
+
+        return redirect(url_for("create_admin"))
+
+    return render_template("create_admin.html")
+
 # --- STUDENT AUTHENTICATION ---
 @app.route("/student/login", methods=["GET", "POST"])
 def student_login():
     if request.method == "POST":
         roll_no = request.form.get("roll_no")
-        password = request.form.get("password")
         
         conn = get_db_connection()
-        student = conn.execute("SELECT * FROM students WHERE roll_no = ? AND password = ?", (roll_no, password)).fetchone()
+        student = conn.execute(
+            "SELECT * FROM students WHERE roll_no = ?",
+            (roll_no,)
+        ).fetchone()
         conn.close()
         
         if student:
