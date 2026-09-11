@@ -11,6 +11,8 @@
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='styles.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -274,6 +276,12 @@
 
             </section>
 
+            <div class="chart-section">
+                <div class="chart-card">
+                    <h3>Today's Attendance</h3>
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
 
             <!-- Project Highlight -->
             <section class="project-highlight">
@@ -295,6 +303,27 @@
         </main>
 
     </div>
+    
+<script>
+    const ctx = document.getElementById("attendanceChart");
+
+    new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Present", "Absent"],
+            datasets: [{
+                data: [
+                    {{ chart_present }},
+                    {{ chart_absent }}
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
 
 </body>
 </html>
