@@ -154,6 +154,53 @@ def create_admin():
 
     return render_template("create_admin.html")
 
+@app.route("/admin/manage")
+def manage_admins():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    admins = conn.execute(
+        "SELECT id, username FROM users ORDER BY id ASC"
+    ).fetchall()
+    conn.close()
+
+    return render_template("manage_admins.html", admins=admins)
+
+
+@app.route("/admin/delete/<int:admin_id>", methods=["POST"])
+def delete_admin(admin_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    admin = conn.execute(
+        "SELECT username FROM users WHERE id = ?",
+        (admin_id,)
+    ).fetchone()
+
+    if not admin:
+        conn.close()
+        flash("Admin account not found!", "error")
+        return redirect(url_for("manage_admins"))
+
+    # Prevent deleting the currently logged-in admin
+    if admin["username"] == session.get("username"):
+        conn.close()
+        flash("You cannot delete the currently logged-in admin!", "error")
+        return redirect(url_for("manage_admins"))
+
+    conn.execute(
+        "DELETE FROM users WHERE id = ?",
+        (admin_id,)
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Admin account deleted successfully!", "success")
+    return redirect(url_for("manage_admins"))
+
 # --- STUDENT AUTHENTICATION ---
 @app.route("/student/login", methods=["GET", "POST"])
 def student_login():
