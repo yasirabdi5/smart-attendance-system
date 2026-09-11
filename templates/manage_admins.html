@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Admins - Smart Attendance</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Manage Admins</h1>
+
+        <p class="subtitle">
+            View and manage administrator accounts.
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message
+                        {% if category == 'error' %}
+                            flash-error
+                        {% else %}
+                            flash-success
+                        {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="student-table">
+
+            <table class="attendance-table">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for admin in admins %}
+
+                    <tr>
+                        <td>{{ admin.id }}</td>
+
+                        <td>{{ admin.username }}</td>
+
+                        <td>
+
+                            {% if admin.username == session.get("username") %}
+
+                                <span style="color: #9ca3af;">
+                                    Current Admin
+                                </span>
+
+                            {% else %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('delete_admin', admin_id=admin.id) }}"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Are you sure you want to delete this admin?');"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        style="background:#dc3545;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;"
+                                    >
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="3" style="text-align:center;">
+                            No admin accounts found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div style="margin-top:20px;">
+
+            <a href="/admin/create"
+               style="text-decoration:none;color:#60a5fa;margin-right:20px;">
+                + Create Admin
+            </a>
+
+            <a href="/"
+               style="text-decoration:none;color:#60a5fa;">
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
