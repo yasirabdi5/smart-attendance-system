@@ -28,6 +28,50 @@
 
         <h2>Attendance Report</h2>
 
+        <!-- Date Filter -->
+        <form method="GET"
+              action="{{ url_for('attendance_report') }}"
+              style="margin: 20px 0;">
+
+            <label for="date">
+                <strong>Select Date</strong>
+            </label>
+
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="{{ selected_date or '' }}"
+                style="padding: 10px; margin-left: 10px;"
+            >
+
+            <button type="submit"
+                    class="button"
+                    style="margin-left: 10px;">
+                Filter
+            </button>
+
+            <a href="{{ url_for('attendance_report') }}"
+               class="button"
+               style="display: inline-block;
+                      text-decoration: none;
+                      margin-left: 10px;">
+                All Dates
+            </a>
+
+        </form>
+
+        {% if selected_date %}
+            <p style="color: #60a5fa; margin-bottom: 20px;">
+                Showing attendance report for:
+                <strong>{{ selected_date }}</strong>
+            </p>
+        {% else %}
+            <p style="color: #9ca3af; margin-bottom: 20px;">
+                Showing attendance report for all dates.
+            </p>
+        {% endif %}
+
         <div class="cards">
 
             <div class="card">
