@@ -20,12 +20,14 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
+    # Added password column for student login
     conn.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             roll_no TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL,
+            password TEXT DEFAULT 'student123',
             photo_path TEXT NOT NULL
         )
     """)
@@ -79,7 +81,6 @@ def auto_mark_absent():
     conn.commit()
     conn.close()
 
-# OpenCV Face Matching Helper Function
 def verify_face_opencv(img1_path, img2_path):
     try:
         img1 = cv2.imread(img1_path, cv2.IMREAD_GRAYSCALE)
@@ -87,36 +88,17 @@ def verify_face_opencv(img1_path, img2_path):
         if img1 is None or img2 is None:
             return False
         
-        # Resize both images to standard dimensions for comparison
         img1 = cv2.resize(img1, (150, 150))
         img2 = cv2.resize(img2, (150, 150))
         
-        # Compare using Normalized Cross-Correlation (Template Matching)
         res = cv2.matchTemplate(img1, img2, cv2.TM_CCOEFF_NORMED)
         _, score, _, _ = cv2.minMaxLoc(res)
-        
-        # Threshold (0.40 score means acceptable similarity for basic webcams)
         return score > 0.40
     except Exception as e:
         print("Matching error:", e)
         return False
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        conn = get_db_connection()
-        try:
-            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-        except sqlite3.IntegrityError:
-            conn.close()
-            return "User already exists! Try a different username."
-        conn.close()
-        return redirect(url_for("login"))
-    return render_template("register.html")
-
+# --- ADMIN AUTHENTICATION ---
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -126,6 +108,7 @@ def login():
             session["admin_logged_in"] = True
             session["username"] = username
             return redirect(url_for("home"))
+        
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
         conn.close()
@@ -133,14 +116,39 @@ def login():
             session["admin_logged_in"] = True
             session["username"] = username
             return redirect(url_for("home"))
-        return "Invalid Username or Password!"
+        return "Invalid Admin Username or Password!"
     return render_template("login.html")
+
+# --- STUDENT AUTHENTICATION ---
+@app.route("/student/login", methods=["GET", "POST"])
+def student_login():
+    if request.method == "POST":
+        roll_no = request.form.get("roll_no")
+        password = request.form.get("password")
+        
+        conn = get_db_connection()
+        student = conn.execute("SELECT * FROM students WHERE roll_no = ? AND password = ?", (roll_no, password)).fetchone()
+        conn.close()
+        
+        if student:
+            session["student_logged_in"] = True
+            session["student_id"] = student["id"]
+            session["student_name"] = student["name"]
+            return redirect(url_for("student_dashboard"))
+        return "Invalid Roll Number or Password!"
+    return render_template("student_login.html")
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
+@app.route("/student/logout")
+def student_logout():
+    session.clear()
+    return redirect(url_for("student_login"))
+
+# --- ADMIN DASHBOARD ---
 @app.route("/")
 def home():
     if not session.get("admin_logged_in"):
@@ -152,25 +160,47 @@ def home():
     total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     
     present_today = conn.execute(
-        """
-        SELECT COUNT(*)
-        FROM attendance
-        WHERE date = DATE('now')
-        AND status = 'Present'
-        """
+        "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Present'"
     ).fetchone()[0]
 
     absent_today = conn.execute(
-        """
-        SELECT COUNT(*)
-        FROM attendance
-        WHERE date = DATE('now')
-        AND status = 'Absent'
-        """
+        "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Absent'"
     ).fetchone()[0]
 
     conn.close()
     return render_template("index.html", total_students=total_students, present_today=present_today, absent_today=absent_today)
+
+# --- STUDENT DASHBOARD ---
+@app.route("/student/dashboard")
+def student_dashboard():
+    if not session.get("student_logged_in"):
+        return redirect(url_for("student_login"))
+    
+    student_id = session.get("student_id")
+    conn = get_db_connection()
+    
+    student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
+    attendance = conn.execute("""
+        SELECT date, status FROM attendance 
+        WHERE student_id = ? 
+        ORDER BY date DESC
+    """, (student_id,)).fetchall()
+    
+    total_days = len(attendance)
+    present_days = sum(1 for a in attendance if a["status"] == "Present")
+    absent_days = sum(1 for a in attendance if a["status"] == "Absent")
+    percentage = (present_days / total_days) * 100 if total_days > 0 else 0
+    
+    conn.close()
+    return render_template(
+        "student_dashboard.html",
+        student=student,
+        attendance=attendance,
+        total_days=total_days,
+        present_days=present_days,
+        absent_days=absent_days,
+        percentage=round(percentage, 2)
+    )
 
 @app.route("/students", methods=["GET", "POST"])
 def students():
@@ -184,6 +214,7 @@ def students():
             name = data.get("name")
             roll_no = data.get("roll_no")
             email = data.get("email")
+            password = data.get("password", "student123") # Default password
             image_data = data.get("image")
             
             if image_data:
@@ -197,12 +228,12 @@ def students():
                         f.write(image_bytes)
                     
                     conn.execute(
-                        "INSERT INTO students (name, roll_no, email, photo_path) VALUES (?, ?, ?, ?)", 
-                        (name, roll_no, email, photo_path)
+                        "INSERT INTO students (name, roll_no, email, password, photo_path) VALUES (?, ?, ?, ?, ?)", 
+                        (name, roll_no, email, password, photo_path)
                     )
                     conn.commit()
                     conn.close()
-                    return jsonify({"success": True, "message": "Student added with photo successfully!"})
+                    return jsonify({"success": True, "message": "Student registered successfully! Default password is 'student123'."})
                 except sqlite3.IntegrityError:
                     conn.close()
                     return jsonify({"success": False, "message": "Roll number already exists!"})
@@ -226,42 +257,20 @@ def view_attendance():
     selected_date = request.args.get("date")
 
     conn = get_db_connection()
-
     if selected_date:
         attendance = conn.execute("""
-            SELECT
-                attendance.id,
-                students.name,
-                students.roll_no,
-                attendance.date,
-                attendance.status
-            FROM attendance
-            JOIN students
-            ON attendance.student_id = students.id
-            WHERE attendance.date = ?
-            ORDER BY students.roll_no
+            SELECT attendance.id, students.name, students.roll_no, attendance.date, attendance.status
+            FROM attendance JOIN students ON attendance.student_id = students.id
+            WHERE attendance.date = ? ORDER BY students.roll_no
         """, (selected_date,)).fetchall()
     else:
         attendance = conn.execute("""
-            SELECT
-                attendance.id,
-                students.name,
-                students.roll_no,
-                attendance.date,
-                attendance.status
-            FROM attendance
-            JOIN students
-            ON attendance.student_id = students.id
+            SELECT attendance.id, students.name, students.roll_no, attendance.date, attendance.status
+            FROM attendance JOIN students ON attendance.student_id = students.id
             ORDER BY attendance.date DESC
         """).fetchall()
-
     conn.close()
-
-    return render_template(
-        "attendance.html",
-        attendance=attendance,
-        selected_date=selected_date
-    )
+    return render_template("attendance.html", attendance=attendance, selected_date=selected_date)
 
 @app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
@@ -288,9 +297,7 @@ def mark_attendance():
                 with open(temp_path, "wb") as f:
                     f.write(base64.b64decode(encoded))
                 
-                # Verify face using OpenCV
                 is_matched = verify_face_opencv(student['photo_path'], temp_path)
-                
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 
@@ -302,18 +309,13 @@ def mark_attendance():
                         )
                         conn.commit()
                         conn.close()
-                        return jsonify({
-                            "success": True, 
-                            "student_name": student['name'], 
-                            "roll_no": student['roll_no']
-                        })
+                        return jsonify({"success": True, "student_name": student['name'], "roll_no": student['roll_no']})
                     except sqlite3.IntegrityError:
                         conn.close()
                         return jsonify({"success": False, "message": "Attendance already marked for today!"})
                 else:
                     conn.close()
                     return jsonify({"success": False, "message": "Face did not match! Attendance rejected."})
-                    
             except Exception as e:
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
@@ -333,31 +335,20 @@ def mark_attendance():
 def webcam_scanner(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-    
     conn = get_db_connection()
     student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
     conn.close()
-    
     if not student:
         return redirect(url_for("mark_attendance"))
-        
     return render_template("mark_attendance.html", student=student)
 
 @app.route("/attendance/update/<int:attendance_id>", methods=["POST"])
 def update_attendance(attendance_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     status = request.form.get("status")
     conn = get_db_connection()
-    conn.execute(
-        """
-        UPDATE attendance
-        SET status = ?
-        WHERE id = ?
-        """,
-        (status, attendance_id)
-    )
+    conn.execute("UPDATE attendance SET status = ? WHERE id = ?", (status, attendance_id))
     conn.commit()
     conn.close()
     return redirect(url_for("view_attendance"))
@@ -366,12 +357,8 @@ def update_attendance(attendance_id):
 def delete_attendance(attendance_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
-    conn.execute(
-        "DELETE FROM attendance WHERE id = ?",
-        (attendance_id,)
-    )
+    conn.execute("DELETE FROM attendance WHERE id = ?", (attendance_id,))
     conn.commit()
     conn.close()
     return redirect(url_for("view_attendance"))
@@ -380,20 +367,14 @@ def delete_attendance(attendance_id):
 def attendance_percentage():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
     students = conn.execute("""
-        SELECT
-            students.id,
-            students.name,
-            students.roll_no,
+        SELECT students.id, students.name, students.roll_no,
             SUM(CASE WHEN attendance.status = 'Present' THEN 1 ELSE 0 END) AS present_days,
             SUM(CASE WHEN attendance.status = 'Absent' THEN 1 ELSE 0 END) AS absent_days,
             COUNT(attendance.id) AS total_days
-        FROM students
-        LEFT JOIN attendance ON students.id = attendance.student_id
-        GROUP BY students.id
-        ORDER BY students.id
+        FROM students LEFT JOIN attendance ON students.id = attendance.student_id
+        GROUP BY students.id ORDER BY students.id
     """).fetchall()
     conn.close()
 
@@ -403,43 +384,25 @@ def attendance_percentage():
         present_days = student["present_days"] or 0
         absent_days = student["absent_days"] or 0
         percentage = (present_days / total_days) * 100 if total_days > 0 else 0
-
         result.append({
-            "name": student["name"],
-            "roll_no": student["roll_no"],
-            "present_days": present_days,
-            "absent_days": absent_days,
-            "total_days": total_days,
-            "percentage": round(percentage, 2)
+            "name": student["name"], "roll_no": student["roll_no"],
+            "present_days": present_days, "absent_days": absent_days,
+            "total_days": total_days, "percentage": round(percentage, 2)
         })
-
-    return render_template(
-        "attendance_percentage.html",
-        students=result
-    )
+    return render_template("attendance_percentage.html", students=result)
 
 @app.route("/attendance/report")
 def attendance_report():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
     total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     total_records = conn.execute("SELECT COUNT(*) FROM attendance").fetchone()[0]
     present_records = conn.execute("SELECT COUNT(*) FROM attendance WHERE status = 'Present'").fetchone()[0]
     absent_records = conn.execute("SELECT COUNT(*) FROM attendance WHERE status = 'Absent'").fetchone()[0]
     conn.close()
-
     overall_percentage = (present_records / total_records) * 100 if total_records > 0 else 0
-
-    return render_template(
-        "attendance_report.html",
-        total_students=total_students,
-        total_records=total_records,
-        present_records=present_records,
-        absent_records=absent_records,
-        overall_percentage=round(overall_percentage, 2)
-    )
+    return render_template("attendance_report.html", total_students=total_students, total_records=total_records, present_records=present_records, absent_records=absent_records, overall_percentage=round(overall_percentage, 2))
 
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
@@ -462,45 +425,26 @@ def delete_student(student_id):
 def edit_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-
     conn = get_db_connection()
     if request.method == "POST":
         name = request.form["name"]
         roll_no = request.form["roll_no"]
         email = request.form["email"]
-
         try:
-            conn.execute(
-                """
-                UPDATE students
-                SET name = ?, roll_no = ?, email = ?
-                WHERE id = ?
-                """,
-                (name, roll_no, email, student_id)
-            )
+            conn.execute("UPDATE students SET name = ?, roll_no = ?, email = ? WHERE id = ?", (name, roll_no, email, student_id))
             conn.commit()
         except sqlite3.IntegrityError:
             conn.close()
             flash("Roll number already exists!", "error")
             return redirect(url_for("edit_student", student_id=student_id))
-
         conn.close()
         flash("Student updated successfully!", "success")
         return redirect(url_for("students"))
-
-    student = conn.execute(
-        "SELECT * FROM students WHERE id = ?",
-        (student_id,)
-    ).fetchone()
+    student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
     conn.close()
-
     if student is None:
         return "Student not found!"
-
-    return render_template(
-        "edit_student.html",
-        student=student
-    )
+    return render_template("edit_student.html", student=student)
 
 if __name__ == "__main__":
     init_db()

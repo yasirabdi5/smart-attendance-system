@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container" style="max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+        <h2>Student Portal Login</h2>
+        <form method="POST" action="{{ url_for('student_login') }}">
+            <div style="margin-bottom: 15px;">
+                <label for="roll_no" style="display: block; margin-bottom: 5px;">Roll Number:</label>
+                <input type="text" name="roll_no" id="roll_no" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="password" style="display: block; margin-bottom: 5px;">Password:</label>
+                <input type="password" name="password" id="password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+            </div>
+            <button type="submit" class="btn" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Login as Student</button>
+        </form>
+        <p style="margin-top: 15px; text-align: center;">
+            <a href="{{ url_for('login') }}" style="color: #666; text-decoration: none;">Go to Admin Login</a>
+        </p>
+    </div>
+</body>
+</html>
