@@ -16,13 +16,13 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div style="padding: 10px; margin-bottom: 15px; background-color: {% if category == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if category == 'error' %}#721c24{% else %}#155724{% endif %}; border-radius: 4px;">
+                    <div class="flash-message {% if category == 'error' %}flash-error{% else %}flash-success{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-
+        
         <!-- Add New Student Form with Live Webcam Capture -->
         <div style="margin-bottom: 30px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
             <h3>Add New Student with Live Photo</h3>

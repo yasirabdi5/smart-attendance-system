@@ -646,3 +646,18 @@ body {
 .chart-card canvas {
     max-height: 280px;
 }
+.flash-message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.flash-success {
+    background-color: #d4edda;
+    color: #155724;
+}
