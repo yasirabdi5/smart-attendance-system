@@ -4,7 +4,9 @@ import base64
 from datetime import datetime
 import cv2
 import numpy as np
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
+import csv
+import io
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash, Response
 
 app = Flask(__name__)
 app.secret_key = "smart-attendance-secret-key"
@@ -419,6 +421,80 @@ def attendance_percentage():
             "total_days": total_days, "percentage": round(percentage, 2)
         })
     return render_template("attendance_percentage.html", students=result)
+
+@app.route("/attendance/report/download")
+def download_attendance_report():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    selected_date = request.args.get("date")
+
+    conn = get_db_connection()
+
+    if selected_date:
+        records = conn.execute(
+            """
+            SELECT
+                s.roll_no,
+                s.name,
+                a.date,
+                a.status
+            FROM attendance a
+            JOIN students s ON a.student_id = s.id
+            WHERE a.date = ?
+            ORDER BY s.roll_no
+            """,
+            (selected_date,)
+        ).fetchall()
+    else:
+        records = conn.execute(
+            """
+            SELECT
+                s.roll_no,
+                s.name,
+                a.date,
+                a.status
+            FROM attendance a
+            JOIN students s ON a.student_id = s.id
+            ORDER BY a.date DESC, s.roll_no
+            """
+        ).fetchall()
+
+    conn.close()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Roll No",
+        "Student Name",
+        "Date",
+        "Status"
+    ])
+
+    for record in records:
+        writer.writerow([
+            record["roll_no"],
+            record["name"],
+            record["date"],
+            record["status"]
+        ])
+
+    output.seek(0)
+
+    filename = (
+        f"attendance_report_{selected_date}.csv"
+        if selected_date
+        else "attendance_report_all.csv"
+    )
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
 
 @app.route("/attendance/report")
 def attendance_report():
