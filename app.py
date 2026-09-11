@@ -150,25 +150,55 @@ def student_logout():
 
 # --- ADMIN DASHBOARD ---
 @app.route("/")
+@app.route("/")
 def home():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
-    
+
     auto_mark_absent()
-    
+
     conn = get_db_connection()
-    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-    
+
+    total_students = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
     present_today = conn.execute(
-        "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Present'"
+        """
+        SELECT COUNT(*)
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.date = DATE('now')
+        AND a.status = 'Present'
+        """
     ).fetchone()[0]
 
     absent_today = conn.execute(
-        "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Absent'"
+        """
+        SELECT COUNT(*)
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.date = DATE('now')
+        AND a.status = 'Absent'
+        """
     ).fetchone()[0]
 
+    if total_students > 0:
+        attendance_percentage = round(
+            (present_today / total_students) * 100, 2
+        )
+    else:
+        attendance_percentage = 0
+
     conn.close()
-    return render_template("index.html", total_students=total_students, present_today=present_today, absent_today=absent_today)
+
+    return render_template(
+        "index.html",
+        total_students=total_students,
+        present_today=present_today,
+        absent_today=absent_today,
+        attendance_percentage=attendance_percentage
+    )
 # --- STUDENT DASHBOARD ---
 @app.route("/student/dashboard")
 def student_dashboard():
