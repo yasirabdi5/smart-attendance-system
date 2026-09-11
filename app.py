@@ -165,30 +165,10 @@ def home():
 
     absent_today = conn.execute(
         "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Absent'"
-
-        """
-        SELECT COUNT(*)
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        WHERE a.date = DATE('now')
-        AND a.status = 'Present'
-        """
-    ).fetchone()[0]
-
-    absent_today = conn.execute(
-        """
-        SELECT COUNT(*)
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        WHERE a.date = DATE('now')
-        AND a.status = 'Absent'
-        """
-
     ).fetchone()[0]
 
     conn.close()
     return render_template("index.html", total_students=total_students, present_today=present_today, absent_today=absent_today)
-
 # --- STUDENT DASHBOARD ---
 @app.route("/student/dashboard")
 def student_dashboard():
