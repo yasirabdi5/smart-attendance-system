@@ -160,11 +160,31 @@ def home():
     total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     
     present_today = conn.execute(
+<<<<<<< HEAD
         "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Present'"
     ).fetchone()[0]
 
     absent_today = conn.execute(
         "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Absent'"
+=======
+        """
+        SELECT COUNT(*)
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.date = DATE('now')
+        AND a.status = 'Present'
+        """
+    ).fetchone()[0]
+
+    absent_today = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.date = DATE('now')
+        AND a.status = 'Absent'
+        """
+>>>>>>> df7fef8d5c300a99a1ae4c7353564ceb5a25f829
     ).fetchone()[0]
 
     conn.close()
@@ -408,16 +428,36 @@ def attendance_report():
 def delete_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
+
     conn = get_db_connection()
-    student = conn.execute("SELECT photo_path FROM students WHERE id = ?", (student_id,)).fetchone()
+
+    student = conn.execute(
+        "SELECT photo_path FROM students WHERE id = ?",
+        (student_id,)
+    ).fetchone()
+
+    # Delete student's photo
     if student and student["photo_path"] and os.path.exists(student["photo_path"]):
         try:
             os.remove(student["photo_path"])
         except:
             pass
-    conn.execute("DELETE FROM students WHERE id = ?", (student_id,))
+
+    # Delete attendance records of this student
+    conn.execute(
+        "DELETE FROM attendance WHERE student_id = ?",
+        (student_id,)
+    )
+
+    # Delete student
+    conn.execute(
+        "DELETE FROM students WHERE id = ?",
+        (student_id,)
+    )
+
     conn.commit()
     conn.close()
+
     flash("Student deleted successfully!", "success")
     return redirect(url_for("students"))
 
