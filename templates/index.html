@@ -304,26 +304,31 @@
 
     </div>
     
-<script>
-    const ctx = document.getElementById("attendanceChart");
+    <script>
+        const attendanceData = {
+            present: Number("{{ chart_present }}"),
+            absent: Number("{{ chart_absent }}")
+        };
 
-    new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: ["Present", "Absent"],
-            datasets: [{
-                data: [
-                    {{ chart_present }},
-                    {{ chart_absent }}
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-</script>
+        const ctx = document.getElementById("attendanceChart");
+
+        new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: ["Present", "Absent"],
+                datasets: [{
+                    data: [
+                        attendanceData.present,
+                        attendanceData.absent
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    </script>
 
 </body>
 </html>

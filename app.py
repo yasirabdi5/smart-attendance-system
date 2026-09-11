@@ -29,7 +29,6 @@ def init_db():
             name TEXT NOT NULL,
             roll_no TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL,
-            password TEXT DEFAULT 'student123',
             photo_path TEXT NOT NULL
         )
     """)
@@ -247,7 +246,6 @@ def students():
             name = data.get("name")
             roll_no = data.get("roll_no")
             email = data.get("email")
-            password = data.get("password", "student123") # Default password
             image_data = data.get("image")
             
             if image_data:
@@ -261,12 +259,13 @@ def students():
                         f.write(image_bytes)
                     
                     conn.execute(
-                        "INSERT INTO students (name, roll_no, email, password, photo_path) VALUES (?, ?, ?, ?, ?)", 
-                        (name, roll_no, email, password, photo_path)
+                        "INSERT INTO students (name, roll_no, email, photo_path) VALUES (?, ?, ?, ?)",
+                        (name, roll_no, email, photo_path)
                     )
+
                     conn.commit()
                     conn.close()
-                    return jsonify({"success": True, "message": "Student registered successfully! Default password is 'student123'."})
+                    return jsonify({"success": True, "message": "Student registered successfully!"})
                 except sqlite3.IntegrityError:
                     conn.close()
                     return jsonify({"success": False, "message": "Roll number already exists!"})
