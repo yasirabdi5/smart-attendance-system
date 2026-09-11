@@ -59,6 +59,14 @@
                 All Dates
             </a>
 
+            <a href="{{ url_for('download_attendance_report', date=selected_date) if selected_date else url_for('download_attendance_report') }}"
+                class="button"
+                style= "display: inline-block;
+                        text-decoration: none;
+                        margin-left: 10px;">
+                Download CSV
+            </a>
+
         </form>
 
         {% if selected_date %}
