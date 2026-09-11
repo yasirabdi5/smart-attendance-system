@@ -424,14 +424,61 @@ def attendance_percentage():
 def attendance_report():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
+
+    selected_date = request.args.get("date")
+
     conn = get_db_connection()
-    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-    total_records = conn.execute("SELECT COUNT(*) FROM attendance").fetchone()[0]
-    present_records = conn.execute("SELECT COUNT(*) FROM attendance WHERE status = 'Present'").fetchone()[0]
-    absent_records = conn.execute("SELECT COUNT(*) FROM attendance WHERE status = 'Absent'").fetchone()[0]
+
+    total_students = conn.execute(
+        "SELECT COUNT(*) FROM students"
+    ).fetchone()[0]
+
+    if selected_date:
+        total_records = conn.execute(
+            "SELECT COUNT(*) FROM attendance WHERE date = ?",
+            (selected_date,)
+        ).fetchone()[0]
+
+        present_records = conn.execute(
+            "SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Present'",
+            (selected_date,)
+        ).fetchone()[0]
+
+        absent_records = conn.execute(
+            "SELECT COUNT(*) FROM attendance WHERE date = ? AND status = 'Absent'",
+            (selected_date,)
+        ).fetchone()[0]
+
+    else:
+        total_records = conn.execute(
+            "SELECT COUNT(*) FROM attendance"
+        ).fetchone()[0]
+
+        present_records = conn.execute(
+            "SELECT COUNT(*) FROM attendance WHERE status = 'Present'"
+        ).fetchone()[0]
+
+        absent_records = conn.execute(
+            "SELECT COUNT(*) FROM attendance WHERE status = 'Absent'"
+        ).fetchone()[0]
+
     conn.close()
-    overall_percentage = (present_records / total_records) * 100 if total_records > 0 else 0
-    return render_template("attendance_report.html", total_students=total_students, total_records=total_records, present_records=present_records, absent_records=absent_records, overall_percentage=round(overall_percentage, 2))
+
+    overall_percentage = (
+        (present_records / total_records) * 100
+        if total_records > 0
+        else 0
+    )
+
+    return render_template(
+        "attendance_report.html",
+        total_students=total_students,
+        total_records=total_records,
+        present_records=present_records,
+        absent_records=absent_records,
+        overall_percentage=round(overall_percentage, 2),
+        selected_date=selected_date
+    )
 
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
