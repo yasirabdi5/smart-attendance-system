@@ -225,52 +225,20 @@ def mark_attendance():
     today_date = datetime.now().strftime("%Y-%m-%d")
 
     if request.method == "POST":
-        if request.is_json:
-            data = request.get_json()
-            student = conn.execute("SELECT * FROM students LIMIT 1").fetchone()
-            if student:
-                try:
-                    conn.execute(
-                        "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", 
-                        (student['id'], today_date, "Present")
-                    )
-                    conn.commit()
-                except sqlite3.IntegrityError:
-                    conn.close()
-                    return jsonify({"success": False, "message": "Attendance already marked for today!"})
-
-                conn.close()
-                return jsonify({
-                    "success": True, 
-                    "student_name": student['name'], 
-                    "roll_no": student['roll_no']
-                })
-            else:
-                conn.close()
-                return jsonify({"success": False, "message": "No students registered in database."})
-
         student_id = request.form.get("student_id")
-        date = request.form.get("date")
         status = request.form.get("status", "Present")
-
-        try:
-            date = datetime.strptime(date, "%d-%m-%Y").strftime("%Y-%m-%d")
-        except ValueError:
-            pass
-
-        try:
-            conn.execute(
-                """
-                INSERT INTO attendance (student_id, date, status)
-                VALUES (?, ?, ?)
-                """,
-                (student_id, date, status)
-            )
-            conn.commit()
-        except sqlite3.IntegrityError:
-            conn.close()
-            return "Attendance already marked for this student on this date!"
-
+        
+        if student_id:
+            try:
+                conn.execute(
+                    "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
+                    (student_id, today_date, status)
+                )
+                conn.commit()
+            except sqlite3.IntegrityError:
+                conn.close()
+                return "Attendance already marked for this student today!"
+        
         conn.close()
         return redirect(url_for("view_attendance"))
 
@@ -322,20 +290,15 @@ def attendance_percentage():
 
     conn = get_db_connection()
     students = conn.execute("""
-        SELECT
+       SELECT
             students.id,
             students.name,
             students.roll_no,
-            COUNT(attendance.id) AS total_days,
-            SUM(
-                CASE
-                    WHEN attendance.status = 'Present' THEN 1
-                    ELSE 0
-                END
-            ) AS present_days
+            SUM(CASE WHEN attendance.status = 'Present' THEN 1 ELSE 0 END) AS present_days,
+            SUM(CASE WHEN attendance.status = 'Absent' THEN 1 ELSE 0 END) AS absent_days,
+            COUNT(attendance.id) AS total_days
         FROM students
-        LEFT JOIN attendance
-        ON students.id = attendance.student_id
+        LEFT JOIN attendance ON students.id = attendance.student_id
         GROUP BY students.id
         ORDER BY students.id
     """).fetchall()
@@ -350,8 +313,9 @@ def attendance_percentage():
         result.append({
             "name": student["name"],
             "roll_no": student["roll_no"],
-            "total_days": total_days,
             "present_days": present_days,
+            "absent_days": student["absent_days"] or 0,
+            "total_days": total_days,
             "percentage": round(percentage, 2)
         })
 
