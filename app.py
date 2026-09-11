@@ -1,12 +1,17 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
+import os
 import sqlite3
 import base64
 from datetime import datetime
+import cv2
+import numpy as np
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
 
 app = Flask(__name__)
 app.secret_key = "smart-attendance-secret-key"
 
 DATABASE = "attendance.db"
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -20,7 +25,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             roll_no TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL
+            email TEXT NOT NULL,
+            photo_path TEXT NOT NULL
         )
     """)
     conn.execute("""
@@ -43,7 +49,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Automatic function jo check karega ki kis student ne pichle dino mein attendance nahi lagayi aur use Absent kar dega
 def auto_mark_absent():
     conn = get_db_connection()
     today_str = datetime.now().strftime("%Y-%m-%d")
@@ -73,6 +78,28 @@ def auto_mark_absent():
                     pass
     conn.commit()
     conn.close()
+
+# OpenCV Face Matching Helper Function
+def verify_face_opencv(img1_path, img2_path):
+    try:
+        img1 = cv2.imread(img1_path, cv2.IMREAD_GRAYSCALE)
+        img2 = cv2.imread(img2_path, cv2.IMREAD_GRAYSCALE)
+        if img1 is None or img2 is None:
+            return False
+        
+        # Resize both images to standard dimensions for comparison
+        img1 = cv2.resize(img1, (150, 150))
+        img2 = cv2.resize(img2, (150, 150))
+        
+        # Compare using Normalized Cross-Correlation (Template Matching)
+        res = cv2.matchTemplate(img1, img2, cv2.TM_CCOEFF_NORMED)
+        _, score, _, _ = cv2.minMaxLoc(res)
+        
+        # Threshold (0.40 score means acceptable similarity for basic webcams)
+        return score > 0.40
+    except Exception as e:
+        print("Matching error:", e)
+        return False
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -150,23 +177,43 @@ def students():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
     conn = get_db_connection()
+    
     if request.method == "POST":
-        name = request.form["name"]
-        roll_no = request.form["roll_no"]
-        email = request.form["email"]
-        try:
-            conn.execute("INSERT INTO students (name, roll_no, email) VALUES (?, ?, ?)", (name, roll_no, email))
-            conn.commit()
-        except sqlite3.IntegrityError:
+        if request.is_json:
+            data = request.get_json()
+            name = data.get("name")
+            roll_no = data.get("roll_no")
+            email = data.get("email")
+            image_data = data.get("image")
+            
+            if image_data:
+                try:
+                    header, encoded = image_data.split(",", 1)
+                    image_bytes = base64.b64decode(encoded)
+                    photo_filename = f"{roll_no}.jpg"
+                    photo_path = os.path.join(UPLOAD_FOLDER, photo_filename)
+                    
+                    with open(photo_path, "wb") as f:
+                        f.write(image_bytes)
+                    
+                    conn.execute(
+                        "INSERT INTO students (name, roll_no, email, photo_path) VALUES (?, ?, ?, ?)", 
+                        (name, roll_no, email, photo_path)
+                    )
+                    conn.commit()
+                    conn.close()
+                    return jsonify({"success": True, "message": "Student added with photo successfully!"})
+                except sqlite3.IntegrityError:
+                    conn.close()
+                    return jsonify({"success": False, "message": "Roll number already exists!"})
+                except Exception as e:
+                    conn.close()
+                    return jsonify({"success": False, "message": f"Error: {str(e)}"})
+            
             conn.close()
-            return "Roll number already exists!"
-        conn.close()
-        flash("Student added successfully!", "success")
-        return redirect(url_for("students"))
+            return jsonify({"success": False, "message": "Photo is required!"})
 
-    students_list = conn.execute(
-        "SELECT * FROM students ORDER BY id DESC"
-    ).fetchall()
+    students_list = conn.execute("SELECT * FROM students ORDER BY id DESC").fetchall()
     conn.close()
     return render_template("students.html", students=students_list)
 
@@ -225,34 +272,54 @@ def mark_attendance():
     today_date = datetime.now().strftime("%Y-%m-%d")
 
     if request.method == "POST":
-        # Agar webcam se JSON data aaye (Attendance save karne ke liye)
         if request.is_json:
             data = request.get_json()
             student_id = data.get("student_id")
+            image_data = data.get("image")
             
-            if student_id:
-                try:
-                    conn.execute(
-                        "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", 
-                        (student_id, today_date, "Present")
-                    )
-                    conn.commit()
+            student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
+            if not student:
+                conn.close()
+                return jsonify({"success": False, "message": "Student not found."})
+            
+            temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{student_id}.jpg")
+            try:
+                header, encoded = image_data.split(",", 1)
+                with open(temp_path, "wb") as f:
+                    f.write(base64.b64decode(encoded))
+                
+                # Verify face using OpenCV
+                is_matched = verify_face_opencv(student['photo_path'], temp_path)
+                
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                
+                if is_matched:
+                    try:
+                        conn.execute(
+                            "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", 
+                            (student_id, today_date, "Present")
+                        )
+                        conn.commit()
+                        conn.close()
+                        return jsonify({
+                            "success": True, 
+                            "student_name": student['name'], 
+                            "roll_no": student['roll_no']
+                        })
+                    except sqlite3.IntegrityError:
+                        conn.close()
+                        return jsonify({"success": False, "message": "Attendance already marked for today!"})
+                else:
+                    conn.close()
+                    return jsonify({"success": False, "message": "Face did not match! Attendance rejected."})
                     
-                    student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
-                    conn.close()
-                    return jsonify({
-                        "success": True, 
-                        "student_name": student['name'], 
-                        "roll_no": student['roll_no']
-                    })
-                except sqlite3.IntegrityError:
-                    conn.close()
-                    return jsonify({"success": False, "message": "Attendance already marked for today!"})
-            
-            conn.close()
-            return jsonify({"success": False, "message": "Student not selected."})
+            except Exception as e:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                conn.close()
+                return jsonify({"success": False, "message": "Error during face verification!"})
 
-        # Pehle step par student select karke webcam page par redirect karne ke liye
         student_id = request.form.get("student_id")
         if student_id:
             conn.close()
@@ -260,7 +327,6 @@ def mark_attendance():
 
     students_list = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
-
     return render_template("select_student.html", students=students_list)
 
 @app.route("/attendance/webcam/<int:student_id>")
@@ -317,7 +383,7 @@ def attendance_percentage():
 
     conn = get_db_connection()
     students = conn.execute("""
-       SELECT
+        SELECT
             students.id,
             students.name,
             students.roll_no,
@@ -333,15 +399,16 @@ def attendance_percentage():
 
     result = []
     for student in students:
-        total_days = student["total_days"]
+        total_days = student["total_days"] or 0
         present_days = student["present_days"] or 0
+        absent_days = student["absent_days"] or 0
         percentage = (present_days / total_days) * 100 if total_days > 0 else 0
 
         result.append({
             "name": student["name"],
             "roll_no": student["roll_no"],
             "present_days": present_days,
-            "absent_days": student["absent_days"] or 0,
+            "absent_days": absent_days,
             "total_days": total_days,
             "percentage": round(percentage, 2)
         })
@@ -379,6 +446,12 @@ def delete_student(student_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
     conn = get_db_connection()
+    student = conn.execute("SELECT photo_path FROM students WHERE id = ?", (student_id,)).fetchone()
+    if student and student["photo_path"] and os.path.exists(student["photo_path"]):
+        try:
+            os.remove(student["photo_path"])
+        except:
+            pass
     conn.execute("DELETE FROM students WHERE id = ?", (student_id,))
     conn.commit()
     conn.close()
