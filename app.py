@@ -225,30 +225,57 @@ def mark_attendance():
     today_date = datetime.now().strftime("%Y-%m-%d")
 
     if request.method == "POST":
+        # Agar webcam se JSON data aaye (Attendance save karne ke liye)
+        if request.is_json:
+            data = request.get_json()
+            student_id = data.get("student_id")
+            
+            if student_id:
+                try:
+                    conn.execute(
+                        "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", 
+                        (student_id, today_date, "Present")
+                    )
+                    conn.commit()
+                    
+                    student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
+                    conn.close()
+                    return jsonify({
+                        "success": True, 
+                        "student_name": student['name'], 
+                        "roll_no": student['roll_no']
+                    })
+                except sqlite3.IntegrityError:
+                    conn.close()
+                    return jsonify({"success": False, "message": "Attendance already marked for today!"})
+            
+            conn.close()
+            return jsonify({"success": False, "message": "Student not selected."})
+
+        # Pehle step par student select karke webcam page par redirect karne ke liye
         student_id = request.form.get("student_id")
-        status = request.form.get("status", "Present")
-        
         if student_id:
-            try:
-                conn.execute(
-                    "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-                    (student_id, today_date, status)
-                )
-                conn.commit()
-            except sqlite3.IntegrityError:
-                conn.close()
-                return "Attendance already marked for this student today!"
-        
-        conn.close()
-        return redirect(url_for("view_attendance"))
+            conn.close()
+            return redirect(url_for("webcam_scanner", student_id=student_id))
 
     students_list = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
 
-    return render_template(
-        "mark_attendance.html",
-        students=students_list
-    )
+    return render_template("select_student.html", students=students_list)
+
+@app.route("/attendance/webcam/<int:student_id>")
+def webcam_scanner(student_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+    
+    conn = get_db_connection()
+    student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
+    conn.close()
+    
+    if not student:
+        return redirect(url_for("mark_attendance"))
+        
+    return render_template("mark_attendance.html", student=student)
 
 @app.route("/attendance/update/<int:attendance_id>", methods=["POST"])
 def update_attendance(attendance_id):

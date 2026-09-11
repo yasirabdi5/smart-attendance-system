@@ -2,27 +2,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Attendance</title>
+    <title>Webcam Attendance - {{ student.name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h2>Mark Attendance - Select Student</h2>
-        <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
+        <h2>Webcam Attendance for: <span style="color: #007bff;">{{ student.name }}</span> (Roll No: {{ student.roll_no }})</h2>
+        <a href="{{ url_for('mark_attendance') }}" class="btn" style="background-color: #6c757d;">Choose Different Student</a>
 
-        <form method="POST" action="{{ url_for('mark_attendance') }}" style="margin-top: 20px;">
-            <div style="margin-bottom: 15px;">
-                <label for="student_id" style="font-weight: bold;">Select Your Name:</label><br><br>
-                <select name="student_id" id="student_id" required style="padding: 10px; width: 350px; font-size: 16px; border-radius: 5px;">
-                    <option value="">-- Choose Student --</option>
-                    {% for student in students %}
-                    <option value="{{ student.id }}">{{ student.name }} (Roll No: {{ student.roll_no }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <input type="hidden" name="status" value="Present">
-            <button type="submit" class="btn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Mark Present</button>
-        </form>
+        <div class="webcam-container" style="margin-top: 20px; text-align: center;">
+            <video id="video" width="640" height="480" autoplay style="border: 2px solid #ccc; border-radius: 8px;"></video>
+            <br><br>
+            <button id="capture-btn" class="btn" style="padding: 12px 25px; font-size: 18px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Capture & Mark Present</button>
+            <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+        </div>
+
+        <div id="result-message" style="margin-top: 20px; font-weight: bold; font-size: 18px;"></div>
     </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const resultMessage = document.getElementById('result-message');
+        const studentId = "{{ student.id }}";
+
+        // Start webcam stream automatically
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Webcam access error: ", err);
+                resultMessage.style.color = "red";
+                resultMessage.innerText = "Webcam access denied or not available!";
+            });
+
+        // Capture image and send attendance request
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            fetch("{{ url_for('mark_attendance') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ image: imageData, student_id: studentId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultMessage.style.color = "green";
+                    resultMessage.innerText = `Success! Attendance marked for ${data.student_name} (${data.roll_no})`;
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('view_attendance') }}";
+                    }, 2000);
+                } else {
+                    resultMessage.style.color = "red";
+                    resultMessage.innerText = data.message;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                resultMessage.style.color = "red";
+                resultMessage.innerText = "An error occurred while marking attendance.";
+            });
+        });
+    </script>
 </body>
 </html>

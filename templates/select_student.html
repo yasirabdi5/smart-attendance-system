@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Student for Webcam Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Select Student to Open Webcam</h2>
+        <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
+
+        <form method="POST" action="{{ url_for('mark_attendance') }}" style="margin-top: 20px;">
+            <div style="margin-bottom: 15px;">
+                <label for="student_id" style="font-weight: bold; font-size: 16px;">Choose Your Name:</label><br><br>
+                <select name="student_id" id="student_id" required style="padding: 10px; width: 350px; font-size: 16px; border-radius: 5px;">
+                    <option value="">-- Select Student --</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.name }} (Roll No: {{ student.roll_no }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Proceed to Webcam</button>
+        </form>
+    </div>
+</body>
+</html>
