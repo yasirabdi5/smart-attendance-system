@@ -160,7 +160,6 @@ def home():
     total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     
     present_today = conn.execute(
-
         "SELECT COUNT(*) FROM attendance WHERE date = DATE('now') AND status = 'Present'"
     ).fetchone()[0]
 
