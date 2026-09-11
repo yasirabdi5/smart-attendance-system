@@ -3,15 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Student Attendance Summary</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
+
     <div class="container">
+
         <h2>Student-wise Attendance Summary</h2>
-        <a href="{{ url_for('home') }}" class="btn">Back to Dashboard</a>
-        
-        <table style="width:100%; margin-top: 20px; border-collapse: collapse;" border="1">
+
+        <a href="{{ url_for('home') }}" class="btn">
+            Back to Dashboard
+        </a>
+
+        <!-- Low Attendance Alert -->
+        <div style="
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #1f2937;
+            border: 1px solid #374151;
+        ">
+
+            <h3 style="margin-top: 0;">
+                ⚠️ Low Attendance Students
+            </h3>
+
+            {% if low_attendance %}
+
+                <p style="color: #fca5a5;">
+                    {{ low_attendance|length }}
+                    student(s) have attendance below 75%.
+                </p>
+
+                <table style="
+                    width: 100%;
+                    margin-top: 15px;
+                    border-collapse: collapse;
+                " border="1">
+
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Attendance</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for s in low_attendance %}
+
+                        <tr>
+                            <td>{{ s.roll_no }}</td>
+
+                            <td>{{ s.name }}</td>
+
+                            <td style="
+                                color: #ef4444;
+                                font-weight: bold;
+                            ">
+                                {{ s.percentage }}%
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            {% else %}
+
+                <p style="color: #86efac;">
+                    ✅ No students have attendance below 75%.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Complete Attendance Table -->
+
+        <h3 style="margin-top: 30px;">
+            Complete Attendance Summary
+        </h3>
+
+        <table style="
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        " border="1">
+
             <thead>
                 <tr>
                     <th>Roll No</th>
@@ -21,22 +109,51 @@
                     <th>Overall Percentage</th>
                 </tr>
             </thead>
+
             <tbody>
+
                 {% for s in students %}
+
                 <tr>
                     <td>{{ s.roll_no }}</td>
+
                     <td>{{ s.name }}</td>
-                    <td style="color: green; font-weight: bold;">{{ s.present_days }}</td>
-                    <td style="color: red; font-weight: bold;">{{ s.absent_days }}</td>
-                    <td>{{ s.percentage }}%</td>
+
+                    <td style="
+                        color: green;
+                        font-weight: bold;
+                    ">
+                        {{ s.present_days }}
+                    </td>
+
+                    <td style="
+                        color: red;
+                        font-weight: bold;
+                    ">
+                        {{ s.absent_days }}
+                    </td>
+
+                    <td>
+                        {{ s.percentage }}%
+                    </td>
                 </tr>
+
                 {% else %}
+
                 <tr>
-                    <td colspan="5" style="text-align: center;">No attendance records found.</td>
+                    <td colspan="5"
+                        style="text-align: center;">
+                        No attendance records found.
+                    </td>
                 </tr>
+
                 {% endfor %}
+
             </tbody>
+
         </table>
+
     </div>
+
 </body>
 </html>

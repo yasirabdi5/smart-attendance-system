@@ -398,29 +398,59 @@ def delete_attendance(attendance_id):
 def attendance_percentage():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
+
     conn = get_db_connection()
+
     students = conn.execute("""
-        SELECT students.id, students.name, students.roll_no,
+        SELECT students.id,
+            students.name,
+            students.roll_no,
             SUM(CASE WHEN attendance.status = 'Present' THEN 1 ELSE 0 END) AS present_days,
             SUM(CASE WHEN attendance.status = 'Absent' THEN 1 ELSE 0 END) AS absent_days,
             COUNT(attendance.id) AS total_days
-        FROM students LEFT JOIN attendance ON students.id = attendance.student_id
-        GROUP BY students.id ORDER BY students.id
+        FROM students
+        LEFT JOIN attendance
+            ON students.id = attendance.student_id
+        GROUP BY students.id
+        ORDER BY students.id
     """).fetchall()
+
     conn.close()
 
     result = []
+
     for student in students:
         total_days = student["total_days"] or 0
         present_days = student["present_days"] or 0
         absent_days = student["absent_days"] or 0
-        percentage = (present_days / total_days) * 100 if total_days > 0 else 0
+
+        percentage = (
+            (present_days / total_days) * 100
+            if total_days > 0
+            else 0
+        )
+
         result.append({
-            "name": student["name"], "roll_no": student["roll_no"],
-            "present_days": present_days, "absent_days": absent_days,
-            "total_days": total_days, "percentage": round(percentage, 2)
+            "name": student["name"],
+            "roll_no": student["roll_no"],
+            "present_days": present_days,
+            "absent_days": absent_days,
+            "total_days": total_days,
+            "percentage": round(percentage, 2)
         })
-    return render_template("attendance_percentage.html", students=result)
+
+    # Students with attendance below 75%
+    low_attendance = [
+        student for student in result
+        if student["total_days"] > 0
+        and student["percentage"] < 75
+    ]
+
+    return render_template(
+        "attendance_percentage.html",
+        students=result,
+        low_attendance=low_attendance
+    )
 
 @app.route("/attendance/report/download")
 def download_attendance_report():
