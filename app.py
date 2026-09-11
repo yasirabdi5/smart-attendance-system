@@ -329,8 +329,16 @@ def students():
             name = data.get("name")
             roll_no = data.get("roll_no")
             email = data.get("email")
+            password = data.get("password")
             image_data = data.get("image")
-            
+
+            if not password:
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "message": "Password is required!"
+                })
+
             if image_data:
                 try:
                     header, encoded = image_data.split(",", 1)
@@ -342,8 +350,12 @@ def students():
                         f.write(image_bytes)
                     
                     conn.execute(
-                        "INSERT INTO students (name, roll_no, email, photo_path) VALUES (?, ?, ?, ?)",
-                        (name, roll_no, email, photo_path)
+                        """
+                        INSERT INTO students
+                        (name, roll_no, email, photo_path, password)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (name, roll_no, email, photo_path, password)
                     )
 
                     conn.commit()

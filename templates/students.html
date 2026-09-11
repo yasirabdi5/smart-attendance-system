@@ -36,6 +36,9 @@
                 <div style="margin-bottom: 10px;">
                     <input type="email" id="email" placeholder="Email Address" required style="padding: 8px; width: 300px;"><br>
                 </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="password" id="password" placeholder="Student Password" required style="padding: 8px; width: 300px;"><br>
+                </div>
                 
                 <h4>Capture Reference Face Photo:</h4>
                 <video id="reg-video" width="320" height="240" autoplay style="border: 1px solid #ccc; border-radius: 5px;"></video><br>
@@ -127,6 +130,7 @@
                 name: document.getElementById('name').value,
                 roll_no: document.getElementById('roll_no').value,
                 email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
                 image: capturedImageData
             };
 
