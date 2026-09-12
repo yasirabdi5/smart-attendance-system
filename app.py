@@ -88,7 +88,7 @@ def compare_faces_sface(image1_path, image2_path):
     feature2 = get_face_feature(image2_path)
 
     if feature1 is None or feature2 is None:
-        return 0.0
+        return None
 
     score = sface_recognizer.match(
         feature1,
@@ -760,6 +760,17 @@ def mark_attendance():
                 )
 
                 SFACE_THRESHOLD = 0.50
+
+                if similarity is None:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+
+                    conn.close()
+
+                    return jsonify({
+                        "success": False,
+                        "message": "No face detected. Please position your face clearly in the camera."
+                    })
 
                 is_matched = similarity >= SFACE_THRESHOLD
 
