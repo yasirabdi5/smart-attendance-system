@@ -206,20 +206,26 @@ def delete_admin(admin_id):
 def student_login():
     if request.method == "POST":
         roll_no = request.form.get("roll_no")
-        
+        password = request.form.get("password")
+
         conn = get_db_connection()
+
         student = conn.execute(
-            "SELECT * FROM students WHERE roll_no = ?",
-            (roll_no,)
+            "SELECT * FROM students WHERE roll_no = ? AND password = ?",
+            (roll_no, password)
         ).fetchone()
+
         conn.close()
-        
+
         if student:
             session["student_logged_in"] = True
             session["student_id"] = student["id"]
             session["student_name"] = student["name"]
+
             return redirect(url_for("student_dashboard"))
+
         return "Invalid Roll Number or Password!"
+
     return render_template("student_login.html")
 
 @app.route("/logout")
