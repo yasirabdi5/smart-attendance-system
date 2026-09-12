@@ -5,3 +5,4 @@ __pycache__/
 .vscode/
 attendance.db
 static/uploads/
+face_data/models/
