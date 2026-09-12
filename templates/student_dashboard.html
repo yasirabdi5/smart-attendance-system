@@ -1,63 +1,643 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - {{ student.name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+```
+<title>Student Dashboard | {{ student.name }}</title>
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
+
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='styles.css') }}"
+/>
+
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0b1120;
+        color: #f9fafb;
+        font-family: Arial, sans-serif;
+    }
+
+    .student-dashboard {
+        max-width: 1200px;
+        margin: auto;
+        padding: 30px;
+    }
+
+    /* Header */
+
+    .student-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 22px;
+        border-bottom: 1px solid #1f2937;
+    }
+
+    .student-header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .student-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #172554;
+        color: #60a5fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .student-header h1 {
+        margin: 0;
+        font-size: 23px;
+    }
+
+    .student-header p {
+        margin: 5px 0 0;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+    .logout-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #dc2626;
+        color: white;
+        text-decoration: none;
+        border-radius: 9px;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+
+    .logout-btn:hover {
+        background: #b91c1c;
+    }
+
+    /* Statistics */
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-top: 25px;
+    }
+
+    .stat-card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 15px;
+        padding: 22px;
+    }
+
+    .stat-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #172554;
+        color: #60a5fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card h3 {
+        margin: 18px 0 5px;
+        font-size: 27px;
+    }
+
+    .stat-card p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    .present-icon {
+        background: #052e1b;
+        color: #4ade80;
+    }
+
+    .absent-icon {
+        background: #450a0a;
+        color: #f87171;
+    }
+
+    .percentage-icon {
+        background: #172554;
+        color: #60a5fa;
+    }
+
+    /* Main content */
+
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 20px;
+        margin-top: 25px;
+    }
+
+    .card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 15px;
+        padding: 24px;
+    }
+
+    .card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 20px;
+        font-size: 18px;
+    }
+
+    .card-title i {
+        color: #60a5fa;
+    }
+
+    /* Profile */
+
+    .profile-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-photo {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #3b82f6;
+        margin-bottom: 20px;
+    }
+
+    .profile-info {
+        width: 100%;
+    }
+
+    .profile-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #1f2937;
+    }
+
+    .profile-row:last-child {
+        border-bottom: none;
+    }
+
+    .profile-label {
+        color: #9ca3af;
+    }
+
+    .profile-value {
+        color: #f3f4f6;
+        font-weight: 600;
+    }
+
+    /* Attendance */
+
+    .attendance-card {
+        overflow: hidden;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .attendance-table th {
+        background: #172554;
+        color: #bfdbfe;
+        padding: 13px;
+        text-align: left;
+        font-size: 13px;
+    }
+
+    .attendance-table td {
+        padding: 13px;
+        color: #d1d5db;
+        border-bottom: 1px solid #1f2937;
+        font-size: 14px;
+    }
+
+    .attendance-table tbody tr:hover {
+        background: #172033;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-present {
+        background: #052e1b;
+        color: #4ade80;
+    }
+
+    .status-absent {
+        background: #450a0a;
+        color: #f87171;
+    }
+
+    .no-records {
+        text-align: center;
+        padding: 30px !important;
+        color: #6b7280 !important;
+    }
+
+    /* Attendance percentage */
+
+    .percentage-section {
+        margin-top: 20px;
+    }
+
+    .percentage-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+
+    .percentage-header span:first-child {
+        color: #9ca3af;
+    }
+
+    .percentage-header span:last-child {
+        color: #60a5fa;
+        font-weight: bold;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 9px;
+        background: #1f2937;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #3b82f6;
+    border-radius: 20px;
+    }
+
+    /* Footer */
+
+    .student-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #1f2937;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 900px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .student-dashboard {
+            padding: 20px 15px;
+        }
+
+        .student-header {
+            align-items: flex-start;
+        }
+
+        .student-header h1 {
+            font-size: 19px;
+        }
+
+        .student-avatar {
+            width: 45px;
+            height: 45px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .logout-btn {
+            padding: 9px 12px;
+        }
+
+        .logout-btn span {
+            display: none;
+        }
+    }
+</style>
+```
+
 </head>
+
 <body>
-    <div class="container" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-            <h2>Welcome, <span style="color: #007bff;">{{ student.name }}</span> (Roll No: {{ student.roll_no }})</h2>
-            <a href="{{ url_for('student_logout') }}" style="background-color: #dc3545; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">Logout</a>
+
+<div class="student-dashboard">
+
+```
+<!-- Header -->
+
+<header class="student-header">
+
+    <div class="student-header-left">
+
+        <div class="student-avatar">
+            <i class="fa-solid fa-user-graduate"></i>
         </div>
 
-        <div style="display: flex; gap: 20px; margin-top: 20px;">
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; flex: 1; border: 1px solid #ddd;">
-                <h3>Profile Details</h3>
-                <p><strong>Email:</strong> {{ student.email }}</p>
-                <p><strong>Total Days Recorded:</strong> {{ total_days }}</p>
-                <p><strong>Present Days:</strong> <span style="color: green;">{{ present_days }}</span></p>
-                <p><strong>Absent Days:</strong> <span style="color: red;">{{ absent_days }}</span></p>
-                <p><strong>Attendance Percentage:</strong> <span style="color: #007bff; font-weight: bold;">{{ percentage }}%</span></p>
-            </div>
-            
-            <div style="flex: 1; text-align: center;">
-                <h3>Reference Face Photo</h3>
-                {% if student.photo_path %}
-                    <img src="/{{ student.photo_path }}" alt="Student Photo" width="150" height="150" style="border-radius: 50%; border: 2px solid #ccc;">
-                {% else %}
-                    <p>No photo uploaded.</p>
-                {% endif %}
-            </div>
+        <div>
+            <h1>Welcome, {{ student.name }}</h1>
+            <p>Roll Number: {{ student.roll_no }}</p>
         </div>
 
-        <h3 style="margin-top: 30px;">Your Attendance History</h3>
-        <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
-                <tr style="background-color: #f1f1f1;">
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if attendance %}
-                    {% for record in attendance %}
-                    <tr>
-                        <td>{{ record.date }}</td>
-                        <td style="color: {% if record.status == 'Present' %}green{% else %}red{% endif %}; font-weight: bold;">
-                            {{ record.status }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="2" style="text-align: center;">No attendance records found yet.</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
     </div>
+
+    <a
+        href="{{ url_for('student_logout') }}"
+        class="logout-btn"
+    >
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Logout</span>
+    </a>
+
+</header>
+
+
+<!-- Statistics -->
+
+<section class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-top">
+            <p>Total Days</p>
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+        </div>
+
+        <h3>{{ total_days }}</h3>
+        <p>Days recorded</p>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-top">
+            <p>Present</p>
+
+            <div class="stat-icon present-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+
+        <h3>{{ present_days }}</h3>
+        <p>Days present</p>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-top">
+            <p>Absent</p>
+
+            <div class="stat-icon absent-icon">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+        </div>
+
+        <h3>{{ absent_days }}</h3>
+        <p>Days absent</p>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-top">
+            <p>Attendance</p>
+
+            <div class="stat-icon percentage-icon">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+        </div>
+
+        <h3>{{ percentage }}%</h3>
+        <p>Overall attendance</p>
+
+    </div>
+
+</section>
+
+
+<!-- Main Content -->
+
+<section class="main-grid">
+
+    <!-- Profile Card -->
+
+    <div class="card">
+
+        <h2 class="card-title">
+            <i class="fa-solid fa-user"></i>
+            Profile Details
+        </h2>
+
+        <div class="profile-content">
+
+            {% if student.photo_path %}
+
+                <img
+                    src="/{{ student.photo_path }}"
+                    alt="Student Photo"
+                    class="profile-photo"
+                >
+
+            {% else %}
+
+                <div class="student-avatar" style="width: 130px; height: 130px; font-size: 45px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+            {% endif %}
+
+
+            <div class="profile-info">
+
+                <div class="profile-row">
+                    <span class="profile-label">Name</span>
+                    <span class="profile-value">{{ student.name }}</span>
+                </div>
+
+                <div class="profile-row">
+                    <span class="profile-label">Roll Number</span>
+                    <span class="profile-value">{{ student.roll_no }}</span>
+                </div>
+
+                <div class="profile-row">
+                    <span class="profile-label">Email</span>
+                    <span class="profile-value">{{ student.email }}</span>
+                </div>
+
+            </div>
+
+
+            <div class="percentage-section">
+
+                <div class="percentage-header">
+                    <span>Attendance Progress</span>
+                    <span>{{ percentage }}%</span>
+                </div>
+
+                <div class="progress-bar">
+                    <div>
+                        class="progress-fill"
+                        style="width: {{ percentage }}%;"
+                    </div>
+                </div>
+
+            </div>
+
+            <script>
+                document.querySelector(".progress-fill").style.width = "{{ percentage }}%";
+            </script>
+
+        </div>
+
+    </div>
+
+
+    <!-- Attendance History -->
+
+    <div class="card attendance-card">
+
+        <h2 class="card-title">
+            <i class="fa-solid fa-calendar-check"></i>
+            Your Attendance History
+        </h2>
+
+        <div class="table-wrapper">
+
+            <table class="attendance-table">
+
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% if attendance %}
+
+                        {% for record in attendance %}
+
+                        <tr>
+
+                            <td>
+                                <i class="fa-regular fa-calendar"></i>
+                                {{ record.date }}
+                            </td>
+
+                            <td>
+
+                                {% if record.status == 'Present' %}
+
+                                    <span class="status status-present">
+                                        <i class="fa-solid fa-check"></i>
+                                        Present
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status status-absent">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        Absent
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="2" class="no-records">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                                <br><br>
+                                No attendance records found yet.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Footer -->
+
+<footer class="student-footer">
+    Smart Attendance System • Student Portal
+</footer>
+```
+
+</div>
+
 </body>
 </html>
