@@ -209,9 +209,21 @@ def init_db():
             name TEXT NOT NULL,
             roll_no TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL,
+            password TEXT NOT NULL,
             photo_path TEXT NOT NULL
         )
     """)
+
+    # Add password column to older databases if it is missing
+    columns = conn.execute("PRAGMA table_info(students)").fetchall()
+
+    column_names = [column["name"] for column in columns]
+
+    if "password" not in column_names:
+        conn.execute(
+            "ALTER TABLE students ADD COLUMN password TEXT NOT NULL DEFAULT ''"
+        )
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
