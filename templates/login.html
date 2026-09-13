@@ -1,79 +1,87 @@
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <mata charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale-1.0">
-        <title>Login - Smart Attendance System</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn-submit {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .btn-submit:hover {
-            background-color: #0056b3;
-        }
-        </style>
-        </mata>
-    </head>
-    <body>
-        <div class="login-container">
-            <h2> Smart Attendance System - Login</h2>
-            <form action="/login" method="post">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .tab-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; color: #666; }
+        .tab-btn.active { color: #007bff; border-bottom: 3px solid #007bff; margin-bottom: -2px; }
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button.submit-btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button.submit-btn:hover { background: #0056b3; }
+        .error { color: red; margin-bottom: 15px; font-size: 14px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h2 style="text-align: center; margin-top: 0;">Portal Login</h2>
+
+        <!-- Login Type Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('admin')">Admin Login</button>
+            <button class="tab-btn" onclick="switchTab('student')">Student Login</button>
+        </div>
+
+        <!-- Admin Login Form -->
+        <div id="admin-section" class="form-section active">
+            {% if admin_error %}
+                <div class="error">{{ admin_error }}</div>
+            {% endif %}
+            <form action="{{ url_for('admin_login') }}" method="POST">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
+                    <label for="admin-username">Admin Username</label>
+                    <input type="text" id="admin-username" name="username" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" name="password" required>
                 </div>
-                <div class="register-link" style="text-align: center; margin-top: 15px; font-size: 14px;">
-    Don't have an account? <a href="/register" style="color: #007bff; text-decoration: none;">Register here</a>
-</div>
-                <button type="submit" class="btn-submit">Login</button>
+                <button type="submit" class="submit-btn">Login as Admin</button>
             </form>
         </div>
-    </body>
+
+        <!-- Student Login Form -->
+        <div id="student-section" class="form-section">
+            {% if student_error %}
+                <div class="error">{{ student_error }}</div>
+            {% endif %}
+            <form action="{{ url_for('student_login') }}" method="POST">
+                <div class="form-group">
+                    <label for="student-id">Student ID / Roll No</label>
+                    <input type="text" id="student-id" name="student_id" required>
+                </div>
+                <div class="form-group">
+                    <label for="student-pass">Password / Pin</label>
+                    <input type="password" id="student-pass" name="password">
+                </div>
+                <button type="submit" class="submit-btn" style="background: #28a745;">Login as Student</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(role) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
+
+            if (role === 'admin') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('admin-section').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('student-section').classList.add('active');
+            }
+        }
+    </script>
+
+</body>
 </html>

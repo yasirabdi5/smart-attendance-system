@@ -1,196 +1,201 @@
-<!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-```
-<title>Student Login | Smart Attendance System</title>
+    <title>Student Login | Smart Attendance System</title>
 
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-/>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 
-<link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='styles.css') }}"
-/>
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='styles.css') }}"
+    >
 
-<style>
-    body {
-        min-height: 100vh;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #0b1120;
-        font-family: Arial, sans-serif;
-    }
-
-    .student-login-wrapper {
-        width: 100%;
-        max-width: 420px;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-
-    .student-login-card {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 18px;
-        padding: 35px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
-    }
-
-    .student-login-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .student-login-icon {
-        width: 70px;
-        height: 70px;
-        margin: 0 auto 18px;
-        border-radius: 50%;
-        background: #172554;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #60a5fa;
-        font-size: 30px;
-    }
-
-    .student-login-header h1 {
-        margin: 0;
-        color: #f9fafb;
-        font-size: 25px;
-    }
-
-    .student-login-header p {
-        margin-top: 8px;
-        color: #9ca3af;
-        font-size: 14px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #d1d5db;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .input-wrapper {
-        position: relative;
-    }
-
-    .input-wrapper > i {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6b7280;
-    }
-
-    .input-wrapper input {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 13px 42px;
-        background: #0f172a;
-        border: 1px solid #374151;
-        border-radius: 10px;
-        color: #f9fafb;
-        font-size: 14px;
-        outline: none;
-        transition: 0.2s;
-    }
-
-    .input-wrapper input::placeholder {
-        color: #6b7280;
-    }
-
-    .input-wrapper input:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-    }
-
-    .password-toggle {
-        position: absolute;
-        right: 13px;
-        top: 50%;
-        transform: translateY(-50%);
-        border: none;
-        background: none;
-        color: #6b7280;
-        cursor: pointer;
-        font-size: 15px;
-    }
-
-    .password-toggle:hover {
-        color: #60a5fa;
-    }
-
-    .student-login-btn {
-        width: 100%;
-        padding: 13px;
-        border: none;
-        border-radius: 10px;
-        background: #2563eb;
-        color: white;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .student-login-btn:hover {
-        background: #1d4ed8;
-        transform: translateY(-1px);
-    }
-
-    .admin-login-link {
-        display: block;
-        margin-top: 22px;
-        text-align: center;
-        color: #9ca3af;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    .admin-login-link:hover {
-        color: #60a5fa;
-    }
-
-    .admin-login-link i {
-        margin-right: 5px;
-    }
-
-    .login-footer {
-        margin-top: 25px;
-        text-align: center;
-        color: #6b7280;
-        font-size: 12px;
-    }
-
-    @media (max-width: 480px) {
-        .student-login-card {
-            padding: 25px 20px;
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0b1120;
+            font-family: Arial, sans-serif;
         }
-    }
-</style>
-```
 
+        .student-login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .student-login-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 18px;
+            padding: 35px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .student-login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .student-login-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background: #172554;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #60a5fa;
+            font-size: 30px;
+        }
+
+        .student-login-header h1 {
+            margin: 0;
+            color: #f9fafb;
+            font-size: 25px;
+        }
+
+        .student-login-header p {
+            margin-top: 8px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper > i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 42px;
+            background: #0f172a;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            color: #f9fafb;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #6b7280;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .password-toggle:hover {
+            color: #60a5fa;
+        }
+
+        .student-login-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .student-login-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .admin-login-link {
+            display: block;
+            margin-top: 22px;
+            text-align: center;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .admin-login-link:hover {
+            color: #60a5fa;
+        }
+
+        .admin-login-link i {
+            margin-right: 5px;
+        }
+
+        .login-footer {
+            margin-top: 25px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .error-message {
+            margin-bottom: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #450a0a;
+            border: 1px solid #7f1d1d;
+            color: #fca5a5;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        @media (max-width: 480px) {
+            .student-login-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-```
 <div class="student-login-wrapper">
 
     <div class="student-login-card">
@@ -207,13 +212,20 @@
 
         </div>
 
+        {% if student_error %}
+        <div class="error-message">
+            {{ student_error }}
+        </div>
+        {% endif %}
 
+
+        <!-- STUDENT LOGIN FORM -->
         <form method="POST" action="{{ url_for('student_login') }}">
 
             <div class="form-group">
 
-                <label for="roll_no">
-                    Roll Number
+                <label for="student_id">
+                    Student ID
                 </label>
 
                 <div class="input-wrapper">
@@ -222,9 +234,9 @@
 
                     <input
                         type="text"
-                        name="roll_no"
-                        id="roll_no"
-                        placeholder="Enter your roll number"
+                        name="student_id"
+                        id="student_id"
+                        placeholder="Enter your Student ID"
                         required
                     >
 
@@ -257,7 +269,10 @@
                         onclick="togglePassword()"
                         aria-label="Show or hide password"
                     >
-                        <i class="fa-solid fa-eye" id="passwordIcon"></i>
+                        <i
+                            class="fa-solid fa-eye"
+                            id="passwordIcon"
+                        ></i>
                     </button>
 
                 </div>
@@ -265,7 +280,10 @@
             </div>
 
 
-            <button type="submit" class="student-login-btn">
+            <button
+                type="submit"
+                class="student-login-btn"
+            >
                 <i class="fa-solid fa-right-to-bracket"></i>
                 Login as Student
             </button>
@@ -273,8 +291,9 @@
         </form>
 
 
+        <!-- GO TO MAIN LOGIN -->
         <a
-            href="{{ url_for('login') }}"
+            href="{{ url_for('login_page') }}"
             class="admin-login-link"
         >
             <i class="fa-solid fa-user-shield"></i>
@@ -293,30 +312,32 @@
 
 <script>
 
-    function togglePassword() {
+function togglePassword() {
 
-        const passwordInput = document.getElementById("password");
-        const passwordIcon = document.getElementById("passwordIcon");
+    const passwordInput =
+        document.getElementById("password");
 
-        if (passwordInput.type === "password") {
+    const passwordIcon =
+        document.getElementById("passwordIcon");
 
-            passwordInput.type = "text";
+    if (passwordInput.type === "password") {
 
-            passwordIcon.classList.remove("fa-eye");
-            passwordIcon.classList.add("fa-eye-slash");
+        passwordInput.type = "text";
 
-        } else {
+        passwordIcon.classList.remove("fa-eye");
+        passwordIcon.classList.add("fa-eye-slash");
 
-            passwordInput.type = "password";
+    } else {
 
-            passwordIcon.classList.remove("fa-eye-slash");
-            passwordIcon.classList.add("fa-eye");
+        passwordInput.type = "password";
 
-        }
+        passwordIcon.classList.remove("fa-eye-slash");
+        passwordIcon.classList.add("fa-eye");
+
     }
+}
 
 </script>
-```
 
 </body>
 </html>

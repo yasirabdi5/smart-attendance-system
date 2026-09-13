@@ -209,9 +209,14 @@ def init_db():
             name TEXT NOT NULL,
             roll_no TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL,
-            photo_path TEXT NOT NULL
+            photo_path TEXT NOT NULL,
+            password TEXT
         )
     """)
+    # Keep existing attendance databases compatible with student login.
+    columns = conn.execute("PRAGMA table_info(students)").fetchall()
+    if not any(column["name"] == "password" for column in columns):
+        conn.execute("ALTER TABLE students ADD COLUMN password TEXT")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -293,32 +298,71 @@ def verify_face_opencv(img1_path, img2_path):
         print("Matching error:", e)
         return False
 
-# --- ADMIN AUTHENTICATION ---
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        if username == "admin" and password == "admin123":
-            session["admin_logged_in"] = True
-            session["username"] = username
-            return redirect(url_for("home"))
-        
-        conn = get_db_connection()
-        user = conn.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password)).fetchone()
-        conn.close()
-        if user:
-            session["admin_logged_in"] = True
-            session["username"] = username
-            return redirect(url_for("home"))
-        return "Invalid Admin Username or Password!"
+# Main Login Page (Selection ya Default Login View)
+@app.route("/login", methods=["GET"])
+def login_page():
     return render_template("login.html")
+
+
+# Admin Login Processing
+@app.route("/admin/login", methods=["POST"])
+def admin_login():
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    # Yahan apne admin credentials check karein
+    if username == "admin" and password == "password123":
+        session["admin_logged_in"] = True
+        session["username"] = username
+        session.pop("student_logged_in", None)
+        session.pop("student_id", None)
+        session.pop("student_name", None)
+        return redirect(url_for("home"))
+    else:
+        return render_template(
+            "login.html", admin_error="Invalid Admin Username or Password!"
+        )
+
+
+# Student Login Processing
+@app.route("/student/login", methods=["POST"])
+def student_login():
+    student_id = request.form.get("student_id")
+    password = request.form.get("password")
+
+    conn = get_db_connection()
+
+    # Database se student verify karein
+    student = conn.execute(
+        "SELECT * FROM students WHERE id = ? AND password = ?",
+        (student_id, password)
+    ).fetchone()
+    conn.close()
+
+    if student:
+        session["student_logged_in"] = True
+        session["student_id"] = student["id"]
+        session["student_name"] = student["name"]
+        session.pop("admin_logged_in", None)
+        session.pop("username", None)
+        return redirect(url_for("student_dashboard"))
+    else:
+        return render_template(
+            "login.html", student_error="Invalid Student ID or Credentials!"
+        )
+
+
+# Logout Route (Dono ke liye common)
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login_page"))
 
 # --- ADMIN MANAGEMENT ---
 @app.route("/admin/create", methods=["GET", "POST"])
 def create_admin():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -351,7 +395,7 @@ def create_admin():
 @app.route("/admin/manage")
 def manage_admins():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     conn = get_db_connection()
     admins = conn.execute(
@@ -365,7 +409,7 @@ def manage_admins():
 @app.route("/admin/delete/<int:admin_id>", methods=["POST"])
 def delete_admin(admin_id):
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     conn = get_db_connection()
 
@@ -395,48 +439,12 @@ def delete_admin(admin_id):
     flash("Admin account deleted successfully!", "success")
     return redirect(url_for("manage_admins"))
 
-# --- STUDENT AUTHENTICATION ---
-@app.route("/student/login", methods=["GET", "POST"])
-def student_login():
-    if request.method == "POST":
-        roll_no = request.form.get("roll_no")
-        password = request.form.get("password")
-
-        conn = get_db_connection()
-
-        student = conn.execute(
-            "SELECT * FROM students WHERE roll_no = ? AND password = ?",
-            (roll_no, password)
-        ).fetchone()
-
-        conn.close()
-
-        if student:
-            session["student_logged_in"] = True
-            session["student_id"] = student["id"]
-            session["student_name"] = student["name"]
-
-            return redirect(url_for("student_dashboard"))
-
-        return "Invalid Roll Number or Password!"
-
-    return render_template("student_login.html")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-@app.route("/student/logout")
-def student_logout():
-    session.clear()
-    return redirect(url_for("student_login"))
 
 # --- ADMIN DASHBOARD ---
 @app.route("/")
 def home():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     auto_mark_absent()
 
@@ -489,7 +497,7 @@ def home():
 @app.route("/student/dashboard")
 def student_dashboard():
     if not session.get("student_logged_in"):
-        return redirect(url_for("student_login"))
+        return redirect(url_for("login_page"))
     
     student_id = session.get("student_id")
     conn = get_db_connection()
@@ -520,7 +528,7 @@ def student_dashboard():
 @app.route("/students", methods=["GET", "POST"])
 def students():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     conn = get_db_connection()
 
@@ -728,7 +736,7 @@ def students():
 @app.route("/attendance", methods=["GET"])
 def view_attendance():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     
     auto_mark_absent()
     selected_date = request.args.get("date")
@@ -752,7 +760,7 @@ def view_attendance():
 @app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     
     conn = get_db_connection()
     today_date = datetime.now().strftime("%Y-%m-%d")
@@ -835,7 +843,7 @@ def mark_attendance():
 @app.route("/attendance/webcam/<int:student_id>")
 def webcam_scanner(student_id):
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     conn = get_db_connection()
     student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
     conn.close()
@@ -846,7 +854,7 @@ def webcam_scanner(student_id):
 @app.route("/attendance/update/<int:attendance_id>", methods=["POST"])
 def update_attendance(attendance_id):
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     status = request.form.get("status")
     conn = get_db_connection()
     conn.execute("UPDATE attendance SET status = ? WHERE id = ?", (status, attendance_id))
@@ -857,7 +865,7 @@ def update_attendance(attendance_id):
 @app.route("/attendance/delete/<int:attendance_id>", methods=["POST"])
 def delete_attendance(attendance_id):
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     conn = get_db_connection()
     conn.execute("DELETE FROM attendance WHERE id = ?", (attendance_id,))
     conn.commit()
@@ -867,7 +875,7 @@ def delete_attendance(attendance_id):
 @app.route("/attendance/percentage")
 def attendance_percentage():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     conn = get_db_connection()
 
@@ -925,7 +933,7 @@ def attendance_percentage():
 @app.route("/attendance/report/download")
 def download_attendance_report():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     selected_date = request.args.get("date")
 
@@ -999,7 +1007,7 @@ def download_attendance_report():
 @app.route("/attendance/report")
 def attendance_report():
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     selected_date = request.args.get("date")
 
@@ -1059,7 +1067,7 @@ def attendance_report():
 @app.route("/students/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
 
     conn = get_db_connection()
 
@@ -1096,7 +1104,7 @@ def delete_student(student_id):
 @app.route("/students/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
     if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
+        return redirect(url_for("login_page"))
     conn = get_db_connection()
     if request.method == "POST":
         name = request.form["name"]
