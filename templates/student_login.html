@@ -1,9 +1,9 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Student Portal - Smart Attendance System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- FontAwesome for icons if needed -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -166,7 +166,8 @@
             </button>
         </form>
 
-        <a href="{{ url_for('login') }}" class="switch-link">
+        <!-- Sahi route yahan update kar diya gaya hai -->
+        <a href="{{ url_for('admin_login') }}" class="switch-link">
             <i class="fa-solid fa-user-shield"></i> Go to Admin Login
         </a>
 
