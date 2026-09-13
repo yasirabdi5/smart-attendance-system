@@ -1,176 +1,322 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student Portal - Smart Attendance System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #0b0f19;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-card {
-            background-color: #111827;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            color: #f3f4f6;
-            border: 1px solid #1f2937;
-        }
-        .portal-icon {
-            background-color: #1e3a8a;
-            color: #60a5fa;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px auto;
-            font-size: 28px;
-        }
-        .login-card h2 {
-            margin-bottom: 5px;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .login-card p {
-            color: #9ca3af;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #d1d5db;
-        }
-        .input-box {
-            position: relative;
-        }
-        .input-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-        .form-control {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            background-color: #1f2937;
-            border: 1px solid #374151;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .form-control:focus {
-            border-color: #3b82f6;
-        }
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            background-color: #2563eb;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-        .btn-submit:hover {
-            background-color: #1d4ed8;
-        }
-        .switch-link {
-            display: block;
-            margin-top: 20px;
-            color: #9ca3af;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .switch-link:hover {
-            color: #60a5fa;
-        }
-        .footer-text {
-            margin-top: 30px;
-            color: #6b7280;
-            font-size: 12px;
-        }
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-        .alert-danger {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-        }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <div class="portal-icon">
-            <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <h2>Student Portal</h2>
-        <p>Sign in to view your attendance</p>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+```
+<title>Student Login | Smart Attendance System</title>
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
+
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='styles.css') }}"
+/>
+
+<style>
+    body {
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b1120;
+        font-family: Arial, sans-serif;
+    }
+
+    .student-login-wrapper {
+        width: 100%;
+        max-width: 420px;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .student-login-card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 18px;
+        padding: 35px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .student-login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .student-login-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        background: #172554;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #60a5fa;
+        font-size: 30px;
+    }
+
+    .student-login-header h1 {
+        margin: 0;
+        color: #f9fafb;
+        font-size: 25px;
+    }
+
+    .student-login-header p {
+        margin-top: 8px;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #d1d5db;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper > i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 13px 42px;
+        background: #0f172a;
+        border: 1px solid #374151;
+        border-radius: 10px;
+        color: #f9fafb;
+        font-size: 14px;
+        outline: none;
+        transition: 0.2s;
+    }
+
+    .input-wrapper input::placeholder {
+        color: #6b7280;
+    }
+
+    .input-wrapper input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: none;
+        color: #6b7280;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    .password-toggle:hover {
+        color: #60a5fa;
+    }
+
+    .student-login-btn {
+        width: 100%;
+        padding: 13px;
+        border: none;
+        border-radius: 10px;
+        background: #2563eb;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .student-login-btn:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+    }
+
+    .admin-login-link {
+        display: block;
+        margin-top: 22px;
+        text-align: center;
+        color: #9ca3af;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .admin-login-link:hover {
+        color: #60a5fa;
+    }
+
+    .admin-login-link i {
+        margin-right: 5px;
+    }
+
+    .login-footer {
+        margin-top: 25px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+        .student-login-card {
+            padding: 25px 20px;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<div class="student-login-wrapper">
+
+    <div class="student-login-card">
+
+        <div class="student-login-header">
+
+            <div class="student-login-icon">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+
+            <h1>Student Portal</h1>
+
+            <p>Sign in to view your attendance</p>
+
+        </div>
+
 
         <form method="POST" action="{{ url_for('student_login') }}">
+
             <div class="form-group">
-                <label>Roll Number</label>
-                <div class="input-box">
+
+                <label for="roll_no">
+                    Roll Number
+                </label>
+
+                <div class="input-wrapper">
+
                     <i class="fa-solid fa-id-card"></i>
-                    <input type="text" name="roll_no" class="form-control" placeholder="Enter your roll number" required>
+
+                    <input
+                        type="text"
+                        name="roll_no"
+                        id="roll_no"
+                        placeholder="Enter your roll number"
+                        required
+                    >
+
                 </div>
+
             </div>
+
 
             <div class="form-group">
-                <label>Password</label>
-                <div class="input-box">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="input-wrapper">
+
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword()"
+                        aria-label="Show or hide password"
+                    >
+                        <i class="fa-solid fa-eye" id="passwordIcon"></i>
+                    </button>
+
                 </div>
+
             </div>
 
-            <button type="submit" class="btn-submit">
-                <i class="fa-solid fa-right-to-bracket"></i> Login as Student
+
+            <button type="submit" class="student-login-btn">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                Login as Student
             </button>
+
         </form>
 
-        <!-- Sahi route yahan update kar diya gaya hai -->
-        <a href="{{ url_for('login') }}" class="switch-link">
-            <i class="fa-solid fa-user-shield"></i> Go to Admin Login
+
+        <a
+            href="{{ url_for('login') }}"
+            class="admin-login-link"
+        >
+            <i class="fa-solid fa-user-shield"></i>
+            Go to Admin Login
         </a>
-            <div class="footer-text">Smart Attendance System</div>
+
+
+        <div class="login-footer">
+            Smart Attendance System
+        </div>
+
     </div>
+
+</div>
+
+
+<script>
+
+    function togglePassword() {
+
+        const passwordInput = document.getElementById("password");
+        const passwordIcon = document.getElementById("passwordIcon");
+
+        if (passwordInput.type === "password") {
+
+            passwordInput.type = "text";
+
+            passwordIcon.classList.remove("fa-eye");
+            passwordIcon.classList.add("fa-eye-slash");
+
+        } else {
+
+            passwordInput.type = "password";
+
+            passwordIcon.classList.remove("fa-eye-slash");
+            passwordIcon.classList.add("fa-eye");
+
+        }
+    }
+
+</script>
+```
+
 </body>
 </html>
