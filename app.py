@@ -563,6 +563,23 @@ def students():
                     f.write(image_bytes)
 
                 # -----------------------------------
+                # CHECK IF NEW PHOTO CONTAINS A FACE
+                # -----------------------------------
+
+                new_face_feature = get_face_feature(temp_path)
+
+                if new_face_feature is None:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+
+                    conn.close()
+
+                    return jsonify({
+                        "success": False,
+                        "message": "No face detected. Please position your face clearly in the camera."
+                    })
+
+                # -----------------------------------
                 # CHECK FOR DUPLICATE FACE USING SFACE
                 # -----------------------------------
 
@@ -583,6 +600,9 @@ def students():
                         existing_photo,
                         temp_path
                     )
+
+                    if similarity is None:
+                        continue
 
                     print(
                         f"Comparing {os.path.basename(existing_photo)} "
