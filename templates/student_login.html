@@ -1,0 +1,176 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Portal - Smart Attendance System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- FontAwesome for icons if needed -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0b0f19;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background-color: #111827;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            color: #f3f4f6;
+            border: 1px solid #1f2937;
+        }
+        .portal-icon {
+            background-color: #1e3a8a;
+            color: #60a5fa;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            font-size: 28px;
+        }
+        .login-card h2 {
+            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .login-card p {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #d1d5db;
+        }
+        .input-box {
+            position: relative;
+        }
+        .input-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: #3b82f6;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+        .switch-link {
+            display: block;
+            margin-top: 20px;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .switch-link:hover {
+            color: #60a5fa;
+        }
+        .footer-text {
+            margin-top: 30px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="portal-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <h2>Student Portal</h2>
+        <p>Sign in to view your attendance</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('student_login') }}">
+            <div class="form-group">
+                <label>Roll Number</label>
+                <div class="input-box">
+                    <i class="fa-solid fa-id-card"></i>
+                    <input type="text" name="roll_no" class="form-control" placeholder="Enter your roll number" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-right-to-bracket"></i> Login as Student
+            </button>
+        </form>
+
+        <a href="{{ url_for('login') }}" class="switch-link">
+            <i class="fa-solid fa-user-shield"></i> Go to Admin Login
+        </a>
+
+        <div class="footer-text">Smart Attendance System</div>
+    </div>
+</body>
+</html>

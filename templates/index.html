@@ -3,30 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Dashboard - Smart Attendance</title>
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='styles.css') }}">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
     <div class="dashboard-layout">
 
         <!-- Sidebar -->
         <aside class="sidebar">
-
             <div class="sidebar-logo">
                 <div class="logo-icon">
                     <i class="fa-solid fa-user-check"></i>
                 </div>
-
                 <div>
                     <h2>Smart</h2>
                     <span>Attendance</span>
@@ -36,50 +27,45 @@
             <div class="sidebar-section">
                 <p>MAIN MENU</p>
 
-                <a href="/" class="sidebar-link active">
+                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link active">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
 
-                <a href="/students" class="sidebar-link">
+                <a href="{{ url_for('students') }}" class="sidebar-link">
                     <i class="fa-solid fa-users"></i>
                     <span>Students</span>
                 </a>
 
-                <a href="/attendance" class="sidebar-link">
+                <a href="{{ url_for('attendance') }}" class="sidebar-link">
                     <i class="fa-solid fa-calendar-check"></i>
                     <span>Attendance</span>
                 </a>
 
-                <a href="/attendance/percentage" class="sidebar-link">
+                <a href="{{ url_for('attendance_percentage') }}" class="sidebar-link">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Attendance %</span>
                 </a>
 
-                <a href="/attendance/report" class="sidebar-link">
+                <a href="{{ url_for('attendance_report') }}" class="sidebar-link">
                     <i class="fa-solid fa-file-lines"></i>
                     <span>Reports</span>
                 </a>
             </div>
 
             <div class="sidebar-bottom">
-
-                <a href="/logout" class="sidebar-link logout-link">
+                <a href="{{ url_for('logout') }}" class="sidebar-link logout-link">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Logout</span>
                 </a>
-
             </div>
-
         </aside>
-
 
         <!-- Main Content -->
         <main class="main-content">
 
             <!-- Top Header -->
             <header class="top-header">
-
                 <div>
                     <p class="welcome-text">Welcome back 👋</p>
                     <h1>Attendance Dashboard</h1>
@@ -92,79 +78,58 @@
                     <div class="profile-icon">
                         <i class="fa-solid fa-user"></i>
                     </div>
-
                     <div>
                         <strong>Administrator</strong>
                         <span>Admin Panel</span>
                     </div>
                 </div>
-
             </header>
-
 
             <!-- Statistics -->
             <section class="stats-grid">
-
                 <div class="stat-card">
-
                     <div class="stat-icon students-icon">
                         <i class="fa-solid fa-users"></i>
                     </div>
-
                     <div class="stat-info">
                         <span>Total Students</span>
                         <h2>{{ total_students }}</h2>
                     </div>
-
                 </div>
 
-
                 <div class="stat-card">
-
                     <div class="stat-icon present-icon">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
-
                     <div class="stat-info">
                         <span>Present Today</span>
                         <h2>{{ present_today }}</h2>
                     </div>
-
                 </div>
 
-
                 <div class="stat-card">
-
                     <div class="stat-icon absent-icon">
                         <i class="fa-solid fa-circle-xmark"></i>
                     </div>
-
                     <div class="stat-info">
                         <span>Absent Today</span>
                         <h2>{{ absent_today }}</h2>
                     </div>
-
                 </div>
 
                 <div class="stat-card">
-
                     <div class="stat-icon percentage-icon">
                         <i class="fa-solid fa-chart-pie"></i>
                     </div>
-
                     <div class="stat-info">
                         <span>Attendance Percentage</span>
                         <h2>{{ attendance_percentage }}%</h2>
                     </div>
-
                 </div>
-
             </section>
-
 
             <!-- Quick Actions -->
             <section class="dashboard-section">
-
                 <div class="section-heading">
                     <div>
                         <h2>Quick Actions</h2>
@@ -172,14 +137,11 @@
                     </div>
                 </div>
 
-
                 <div class="action-grid">
-
-                    <a href="/admin/create" class="action-card">
+                    <a href="{{ url_for('admin_create') }}" class="action-card">
                         <div class="action-icon">
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
-
                         <div>
                             <h3>Admin Management</h3>
                             <p>Create a new admin account</p>
@@ -190,112 +152,80 @@
                         <div class="action-icon">
                             <i class="fa-solid fa-user-graduate"></i>
                         </div>
-
                         <div>
                             <h3>Student Portal</h3>
                             <p>Login to view student attendance</p>
                         </div>
                     </a>
 
-                    <a href="/students" class="action-card">
-
+                    <a href="{{ url_for('students') }}" class="action-card">
                         <div class="action-icon">
                             <i class="fa-solid fa-user-plus"></i>
                         </div>
-
                         <div>
                             <h3>Manage Students</h3>
                             <p>Add, edit and manage students.</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-right action-arrow"></i>
-
                     </a>
 
-
-                    <a href="/attendance/mark" class="action-card">
-
+                    <a href="{{ url_for('mark_attendance') }}" class="action-card">
                         <div class="action-icon">
                             <i class="fa-solid fa-calendar-plus"></i>
                         </div>
-
                         <div>
                             <h3>Mark Attendance</h3>
                             <p>Record today's attendance.</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-right action-arrow"></i>
-
                     </a>
 
-
-                    <a href="/attendance" class="action-card">
-
+                    <a href="{{ url_for('attendance') }}" class="action-card">
                         <div class="action-icon">
                             <i class="fa-solid fa-list-check"></i>
                         </div>
-
                         <div>
                             <h3>View Attendance</h3>
                             <p>View and update attendance records.</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-right action-arrow"></i>
-
                     </a>
 
-
-                    <a href="/attendance/percentage" class="action-card">
-
+                    <a href="{{ url_for('attendance_percentage') }}" class="action-card">
                         <div class="action-icon">
                             <i class="fa-solid fa-chart-simple"></i>
                         </div>
-
                         <div>
                             <h3>Attendance Percentage</h3>
                             <p>Check student attendance percentage.</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-right action-arrow"></i>
-
                     </a>
 
-
-                    <a href="/attendance/report" class="action-card">
-
+                    <a href="{{ url_for('attendance_report') }}" class="action-card">
                         <div class="action-icon">
                             <i class="fa-solid fa-chart-column"></i>
                         </div>
-
                         <div>
                             <h3>Attendance Report</h3>
                             <p>View overall attendance statistics.</p>
                         </div>
-
                         <i class="fa-solid fa-arrow-right action-arrow"></i>
-
                     </a>
-
 
                     <!-- Future Face Recognition -->
                     <a href="#" class="action-card face-card">
-
                         <div class="action-icon">
                             <i class="fa-solid fa-face-smile"></i>
                         </div>
-
                         <div>
                             <h3>Face Recognition</h3>
                             <p>Automatic attendance using face recognition.</p>
                             <span class="coming-soon">Coming Soon</span>
                         </div>
-
                         <i class="fa-solid fa-arrow-right action-arrow"></i>
-
                     </a>
-
                 </div>
-
             </section>
 
             <div class="chart-section">
@@ -307,11 +237,9 @@
 
             <!-- Project Highlight -->
             <section class="project-highlight">
-
                 <div class="highlight-icon">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
-
                 <div>
                     <h2>Smart Attendance System</h2>
                     <p>
@@ -319,11 +247,8 @@
                         attendance tracking and reporting.
                     </p>
                 </div>
-
             </section>
-
         </main>
-
     </div>
     
     <script>
@@ -351,6 +276,5 @@
             }
         });
     </script>
-
 </body>
 </html>
