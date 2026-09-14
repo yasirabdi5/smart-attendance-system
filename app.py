@@ -242,35 +242,37 @@ def init_db():
     conn.commit()
     conn.close()
 
-def auto_mark_absent():
+def ensure_attendance_for_date(date_str):
+    """
+    Ensure every registered student has one attendance
+    record for the given date.
+
+    Existing Present/Absent records are not overwritten.
+    Missing records are created as Absent.
+    """
     conn = get_db_connection()
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    
-    dates = conn.execute("SELECT DISTINCT date FROM attendance").fetchall()
-    students = conn.execute("SELECT id FROM students").fetchall()
-    
-    for d in dates:
-        date_str = d['date']
-        if date_str == today_str:
-            continue
-            
-        for s in students:
-            student_id = s['id']
-            exists = conn.execute(
-                "SELECT 1 FROM attendance WHERE student_id = ? AND date = ?",
-                (student_id, date_str)
-            ).fetchone()
-            
-            if not exists:
-                try:
-                    conn.execute(
-                        "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)",
-                        (student_id, date_str, "Absent")
-                    )
-                except sqlite3.IntegrityError:
-                    pass
+
+    students = conn.execute(
+        "SELECT id FROM students"
+    ).fetchall()
+
+    for student in students:
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO attendance
+            (student_id, date, status)
+            VALUES (?, ?, ?)
+            """,
+            (student["id"], date_str, "Absent")
+        )
+
     conn.commit()
     conn.close()
+
+
+def auto_mark_absent():
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    ensure_attendance_for_date(today_str)
 
 def verify_face_opencv(img1_path, img2_path):
     try:
@@ -453,6 +455,8 @@ def home():
 
     auto_mark_absent()
 
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
     conn = get_db_connection()
 
     total_students = conn.execute(
@@ -464,9 +468,10 @@ def home():
         SELECT COUNT(*)
         FROM attendance a
         JOIN students s ON a.student_id = s.id
-        WHERE a.date = DATE('now')
+        WHERE a.date = ?
         AND a.status = 'Present'
-        """
+        """,
+        (today_str,)
     ).fetchone()[0]
 
     absent_today = conn.execute(
@@ -474,9 +479,10 @@ def home():
         SELECT COUNT(*)
         FROM attendance a
         JOIN students s ON a.student_id = s.id
-        WHERE a.date = DATE('now')
+        WHERE a.date = ?
         AND a.status = 'Absent'
-        """
+        """,
+        (today_str,)
     ).fetchone()[0]
 
     if total_students > 0:
@@ -742,51 +748,95 @@ def students():
 def view_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login_page"))
-    
-    auto_mark_absent()
-    selected_date = request.args.get("date")
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    selected_date = request.args.get("date") or today_str
+
+    if selected_date <= today_str:
+        ensure_attendance_for_date(selected_date)
 
     conn = get_db_connection()
-    if selected_date:
-        attendance = conn.execute("""
-            SELECT attendance.id, students.name, students.roll_no, attendance.date, attendance.status
-            FROM attendance JOIN students ON attendance.student_id = students.id
-            WHERE attendance.date = ? ORDER BY students.roll_no
-        """, (selected_date,)).fetchall()
-    else:
-        attendance = conn.execute("""
-            SELECT attendance.id, students.name, students.roll_no, attendance.date, attendance.status
-            FROM attendance JOIN students ON attendance.student_id = students.id
-            ORDER BY attendance.date DESC
-        """).fetchall()
+
+    attendance = conn.execute(
+        """
+        SELECT
+            attendance.id,
+            students.name,
+            students.roll_no,
+            attendance.date,
+            attendance.status
+        FROM attendance
+        JOIN students
+            ON attendance.student_id = students.id
+        WHERE attendance.date = ?
+        ORDER BY students.roll_no
+        """,
+        (selected_date,)
+    ).fetchall()
+
     conn.close()
-    return render_template("attendance.html", attendance=attendance, selected_date=selected_date)
+
+    return render_template(
+        "attendance.html",
+        attendance=attendance,
+        selected_date=selected_date
+    )
 
 @app.route("/attendance/mark", methods=["GET", "POST"])
 def mark_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login_page"))
-    
+
     conn = get_db_connection()
     today_date = datetime.now().strftime("%Y-%m-%d")
 
     if request.method == "POST":
+
         if request.is_json:
             data = request.get_json()
+
             student_id = data.get("student_id")
             image_data = data.get("image")
-            
-            student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
+
+            if not student_id:
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "message": "Student ID is required."
+                })
+
+            if not image_data:
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "message": "Image is required."
+                })
+
+            student = conn.execute(
+                "SELECT * FROM students WHERE id = ?",
+                (student_id,)
+            ).fetchone()
+
             if not student:
                 conn.close()
-                return jsonify({"success": False, "message": "Student not found."})
-            
-            temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{student_id}.jpg")
+                return jsonify({
+                    "success": False,
+                    "message": "Student not found."
+                })
+
+            temp_path = os.path.join(
+                UPLOAD_FOLDER,
+                f"temp_{student_id}.jpg"
+            )
+
             try:
+                # Decode captured image
                 header, encoded = image_data.split(",", 1)
+
                 with open(temp_path, "wb") as f:
                     f.write(base64.b64decode(encoded))
-                
+
+                # Compare captured face with registered face
                 similarity = compare_faces_sface(
                     student["photo_path"],
                     temp_path
@@ -794,10 +844,12 @@ def mark_attendance():
 
                 SFACE_THRESHOLD = 0.50
 
-                if similarity is None:
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
+                # Remove temporary image
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
+                # Face not detected
+                if similarity is None:
                     conn.close()
 
                     return jsonify({
@@ -808,42 +860,101 @@ def mark_attendance():
                 is_matched = similarity >= SFACE_THRESHOLD
 
                 print(
-                    f"Attendance face similarity for {student['name']}: "
-                    f"{similarity:.4f}"
+                    f"Attendance face similarity for "
+                    f"{student['name']}: {similarity:.4f}"
                 )
-                
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                
+
+                # Face matched
                 if is_matched:
+
                     try:
                         conn.execute(
-                            "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", 
-                            (student_id, today_date, "Present")
+                            """
+                            INSERT INTO attendance
+                            (student_id, date, status)
+                            VALUES (?, ?, ?)
+                            ON CONFLICT(student_id, date)
+                            DO UPDATE SET status = 'Present'
+                            """,
+                            (
+                                student_id,
+                                today_date,
+                                "Present"
+                            )
                         )
+
                         conn.commit()
                         conn.close()
-                        return jsonify({"success": True, "student_name": student['name'], "roll_no": student['roll_no']})
-                    except sqlite3.IntegrityError:
+
+                        return jsonify({
+                            "success": True,
+                            "student_name": student["name"],
+                            "roll_no": student["roll_no"]
+                        })
+
+                    except Exception as e:
                         conn.close()
-                        return jsonify({"success": False, "message": "Attendance already marked for today!"})
+
+                        print(
+                            "Attendance database error:",
+                            e
+                        )
+
+                        return jsonify({
+                            "success": False,
+                            "message": "Could not save attendance."
+                        })
+
+                # Face did not match
                 else:
                     conn.close()
-                    return jsonify({"success": False, "message": "Face did not match! Attendance rejected."})
+
+                    return jsonify({
+                        "success": False,
+                        "message": "Face did not match! Attendance rejected."
+                    })
+
             except Exception as e:
+
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
-                conn.close()
-                return jsonify({"success": False, "message": "Error during face verification!"})
 
+                conn.close()
+
+                print(
+                    "Face verification error:",
+                    e
+                )
+
+                return jsonify({
+                    "success": False,
+                    "message": "Error during face verification!"
+                })
+
+        # Normal form submission
         student_id = request.form.get("student_id")
+
         if student_id:
             conn.close()
-            return redirect(url_for("webcam_scanner", student_id=student_id))
 
-    students_list = conn.execute("SELECT * FROM students").fetchall()
+            return redirect(
+                url_for(
+                    "webcam_scanner",
+                    student_id=student_id
+                )
+            )
+
+    # GET request - show student selection
+    students_list = conn.execute(
+        "SELECT * FROM students"
+    ).fetchall()
+
     conn.close()
-    return render_template("select_student.html", students=students_list)
+
+    return render_template(
+        "select_student.html",
+        students=students_list
+    )
 
 @app.route("/attendance/webcam/<int:student_id>")
 def webcam_scanner(student_id):
