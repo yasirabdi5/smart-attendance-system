@@ -98,6 +98,52 @@ def compare_faces_sface(image1_path, image2_path):
 
     return float(score)
 
+def recognize_student_from_face(image_path, students):
+    """
+    Compare the captured face against all registered students
+    and return the best matching student.
+    """
+
+    SFACE_THRESHOLD = 0.50
+
+    best_student = None
+    best_similarity = -1
+
+    for student in students:
+
+        photo_path = student["photo_path"]
+
+        if not photo_path:
+            continue
+
+        if not os.path.exists(photo_path):
+            continue
+
+        similarity = compare_faces_sface(
+            photo_path,
+            image_path
+        )
+
+        if similarity is None:
+            continue
+
+        print(
+            f"Comparing with {student['name']} "
+            f"({student['roll_no']}) "
+            f"→ similarity: {similarity:.4f}"
+        )
+
+        if similarity > best_similarity:
+
+            best_similarity = similarity
+            best_student = student
+
+    if best_student is not None and best_similarity >= SFACE_THRESHOLD:
+
+        return best_student, best_similarity
+
+    return None, best_similarity
+
 # ==========================================
 # FACE RECOGNITION SETUP
 # ==========================================
@@ -766,84 +812,117 @@ def view_attendance():
 def mark_attendance():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login_page"))
-    
+
     conn = get_db_connection()
     today_date = datetime.now().strftime("%Y-%m-%d")
 
     if request.method == "POST":
+
         if request.is_json:
+
             data = request.get_json()
-            student_id = data.get("student_id")
             image_data = data.get("image")
-            
-            student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
-            if not student:
+
+            if not image_data:
                 conn.close()
-                return jsonify({"success": False, "message": "Student not found."})
-            
-            temp_path = os.path.join(UPLOAD_FOLDER, f"temp_{student_id}.jpg")
+                return jsonify({
+                    "success": False,
+                    "message": "No image received."
+                })
+
+            temp_path = os.path.join(
+                UPLOAD_FOLDER,
+                "temp_attendance.jpg"
+            )
+
             try:
                 header, encoded = image_data.split(",", 1)
+
                 with open(temp_path, "wb") as f:
                     f.write(base64.b64decode(encoded))
-                
-                similarity = compare_faces_sface(
-                    student["photo_path"],
-                    temp_path
+
+                # Get all registered students
+                students = conn.execute(
+                    "SELECT * FROM students"
+                ).fetchall()
+
+                # Recognize the student automatically
+                student, similarity = recognize_student_from_face(
+                    temp_path,
+                    students
                 )
 
-                SFACE_THRESHOLD = 0.50
+                # Remove temporary image
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
-                if similarity is None:
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
+                if student is None:
+                    conn.close()
+
+                    return jsonify({
+                        "success": False,
+                        "message": "Face not recognized. Please look at the camera."
+                    })
+
+                print(
+                    f"Recognized student: {student['name']} "
+                    f"({student['roll_no']}) "
+                    f"→ similarity: {similarity:.4f}"
+                )
+
+                # Mark attendance
+                try:
+                    conn.execute(
+                        """
+                        INSERT INTO attendance
+                        (student_id, date, status)
+                        VALUES (?, ?, ?)
+                        """,
+                        (
+                            student["id"],
+                            today_date,
+                            "Present"
+                        )
+                    )
+
+                    conn.commit()
+                    conn.close()
+
+                    return jsonify({
+                        "success": True,
+                        "student_name": student["name"],
+                        "roll_no": student["roll_no"],
+                        "similarity": round(similarity, 4)
+                    })
+
+                except sqlite3.IntegrityError:
 
                     conn.close()
 
                     return jsonify({
                         "success": False,
-                        "message": "No face detected. Please position your face clearly in the camera."
+                        "message": (
+                            f"Attendance already marked today "
+                            f"for {student['name']}."
+                        )
                     })
 
-                is_matched = similarity >= SFACE_THRESHOLD
-
-                print(
-                    f"Attendance face similarity for {student['name']}: "
-                    f"{similarity:.4f}"
-                )
-                
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                
-                if is_matched:
-                    try:
-                        conn.execute(
-                            "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)", 
-                            (student_id, today_date, "Present")
-                        )
-                        conn.commit()
-                        conn.close()
-                        return jsonify({"success": True, "student_name": student['name'], "roll_no": student['roll_no']})
-                    except sqlite3.IntegrityError:
-                        conn.close()
-                        return jsonify({"success": False, "message": "Attendance already marked for today!"})
-                else:
-                    conn.close()
-                    return jsonify({"success": False, "message": "Face did not match! Attendance rejected."})
             except Exception as e:
+
+                print("Attendance recognition error:", e)
+
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
+
                 conn.close()
-                return jsonify({"success": False, "message": "Error during face verification!"})
 
-        student_id = request.form.get("student_id")
-        if student_id:
-            conn.close()
-            return redirect(url_for("webcam_scanner", student_id=student_id))
+                return jsonify({
+                    "success": False,
+                    "message": "Error during face recognition."
+                })
 
-    students_list = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
-    return render_template("select_student.html", students=students_list)
+    return render_template("mark_attendance.html")
 
 @app.route("/attendance/webcam/<int:student_id>")
 def webcam_scanner(student_id):
