@@ -209,14 +209,19 @@ def init_db():
             name TEXT NOT NULL,
             roll_no TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL,
-            photo_path TEXT NOT NULL,
+ photo_path TEXT NOT NULL,
             password TEXT
         )
     """)
+
     # Keep existing attendance databases compatible with student login.
     columns = conn.execute("PRAGMA table_info(students)").fetchall()
+
     if not any(column["name"] == "password" for column in columns):
-        conn.execute("ALTER TABLE students ADD COLUMN password TEXT")
+        conn.execute(
+            "ALTER TABLE students ADD COLUMN password TEXT"
+        )
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
