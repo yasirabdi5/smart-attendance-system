@@ -50,6 +50,16 @@ def create_database():
         )
     """)
 
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS meal_config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meal_name TEXT NOT NULL UNIQUE,
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1
+        )
+    """)
+
     connection.commit()
     connection.close()
 

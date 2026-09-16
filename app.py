@@ -24,6 +24,30 @@ app.secret_key = "smart-attendance-secret-key"
 
 DATABASE = "attendance.db"
 UPLOAD_FOLDER = "static/uploads"
+def get_current_meal():
+    now = datetime.now().strftime("%H:%M")
+
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+
+    meal = connection.execute(
+        """
+        SELECT meal_name
+        FROM meal_config
+        WHERE is_active = 1
+        AND start_time <= ?
+        AND end_time >= ?
+        LIMIT 1
+        """,
+        (now, now)
+    ).fetchone()
+
+    connection.close()
+
+    if meal:
+        return meal["meal_name"]
+
+    return None
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -2257,3 +2281,4 @@ if __name__ == "__main__":
         debug=True
     )
 
+print("Current meal:", get_current_meal())
