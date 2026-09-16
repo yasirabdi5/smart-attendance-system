@@ -49,6 +49,46 @@ def get_current_meal():
 
     return None
 
+def mark_mess_attendance(student_id):
+    meal = get_current_meal()
+
+    if meal is None:
+        return False, "No meal is currently active."
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    entry_time = datetime.now().strftime("%H:%M:%S")
+
+    connection = sqlite3.connect(DATABASE)
+
+    existing = connection.execute(
+        """
+        SELECT id
+        FROM mess_attendance
+        WHERE student_id = ?
+        AND date = ?
+        AND meal = ?
+        """,
+        (student_id, today, meal)
+    ).fetchone()
+
+    if existing:
+        connection.close()
+        return False, f"{meal} already marked."
+
+    connection.execute(
+        """
+        INSERT INTO mess_attendance
+        (student_id, date, meal, entry_time, status)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (student_id, today, meal, entry_time, "Consumed")
+    )
+
+    connection.commit()
+    connection.close()
+
+    return True, f"{meal} attendance marked successfully."
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
