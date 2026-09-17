@@ -2859,6 +2859,35 @@ def mess_management():
         today_attendance=today_attendance
     )
 
+@app.route("/mess/config", methods=["POST"])
+def update_meal_config():
+
+    meal_name = request.form.get("meal_name")
+    start_time = request.form.get("start_time")
+    end_time = request.form.get("end_time")
+
+    if not meal_name or not start_time or not end_time:
+        flash("All meal timing fields are required.")
+        return redirect(url_for("mess_management"))
+
+    connection = sqlite3.connect(DATABASE)
+
+    connection.execute(
+        """
+        UPDATE meal_config
+        SET start_time = ?, end_time = ?
+        WHERE meal_name = ?
+        """,
+        (start_time, end_time, meal_name)
+    )
+
+    connection.commit()
+    connection.close()
+
+    flash(f"{meal_name} timing updated successfully.")
+
+    return redirect(url_for("mess_management"))
+
 # ==========================================
 # MESS QR SCAN
 # ==========================================
