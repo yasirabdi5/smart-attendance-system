@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mess Management - Smart Attendance</title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='styles.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="dashboard-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+
+            <div>
+                <h2>Authface</h2>
+                <span>Attendance</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <p>MAIN MENU</p>
+
+            <a href="/" class="sidebar-link">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/students" class="sidebar-link">
+                <i class="fa-solid fa-users"></i>
+                <span>Students</span>
+            </a>
+
+            <a href="/attendance" class="sidebar-link">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>Attendance</span>
+            </a>
+
+            <a href="/attendance/percentage" class="sidebar-link">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Attendance %</span>
+            </a>
+
+            <a href="/attendance/report" class="sidebar-link">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Reports</span>
+            </a>
+
+            <a href="/mess" class="sidebar-link active">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Mess Management</span>
+            </a>
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <a href="/logout" class="sidebar-link logout-link">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <header class="top-header">
+
+            <div>
+                <p class="welcome-text">Mess Management</p>
+
+                <h1>Hostel Mess</h1>
+
+                <p class="header-description">
+                    Manage meals and monitor mess attendance.
+                </p>
+            </div>
+
+            <div class="admin-profile">
+
+                <div class="profile-icon">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div>
+                    <strong>Administrator</strong>
+                    <span>Admin Panel</span>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- Meal Section -->
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Today's Meals</h2>
+                    <p>View the available mess timings.</p>
+                </div>
+            </div>
+
+
+            <div class="action-grid">
+
+                <!-- Breakfast -->
+                <div class="action-card">
+
+                    <div class="action-icon">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+
+                    <div>
+                        <h3>Breakfast</h3>
+                        <p>07:30 AM - 09:30 AM</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Lunch -->
+                <div class="action-card">
+
+                    <div class="action-icon">
+                        <i class="fa-solid fa-bowl-food"></i>
+                    </div>
+
+                    <div>
+                        <h3>Lunch</h3>
+                        <p>01:00 PM - 03:00 PM</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Evening Snacks -->
+                <div class="action-card">
+
+                    <div class="action-icon">
+                        <i class="fa-solid fa-cookie-bite"></i>
+                    </div>
+
+                    <div>
+                        <h3>Evening Snacks</h3>
+                        <p>05:00 PM - 06:00 PM</p>
+                    </div>
+
+                </div>
+
+
+                <!-- Dinner -->
+                <div class="action-card">
+
+                    <div class="action-icon">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+
+                    <div>
+                        <h3>Dinner</h3>
+                        <p>07:30 PM - 09:30 PM</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Scanner Section -->
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Mess Attendance</h2>
+
+                    <p>
+                        Scan student QR codes at the mess entrance.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="action-grid">
+
+                <a href="/mess/scanner" class="action-card">
+
+                    <div class="action-icon">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+
+                    <div>
+                        <h3>Open QR Scanner</h3>
+
+                        <p>
+                            Start continuous mess attendance scanning.
+                        </p>
+                    </div>
+
+                    <i class="fa-solid fa-arrow-right action-arrow"></i>
+
+                </a>
+
+
+                <div class="action-card">
+
+                    <div class="action-icon">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+
+                    <div>
+                        <h3>Mess Reports</h3>
+
+                        <p>
+                            View student meal consumption records.
+                        </p>
+                    </div>
+
+                    <i class="fa-solid fa-arrow-right action-arrow"></i>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Today's Attendance -->
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>Today's Mess Attendance</h2>
+
+                    <p>
+                        Meal consumption records will appear here.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <table class="attendance-table">
+
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Roll No</th>
+                        <th>Meal</th>
+                        <th>Entry Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% if today_attendance %}
+
+                        {% for record in today_attendance %}
+
+                            <tr>
+                                <td>{{ record["name"] }}</td>
+                                <td>{{ record["roll_no"] }}</td>
+                                <td>{{ record["meal"] }}</td>
+                                <td>{{ record["entry_time"] }}</td>
+                                <td>{{ record["status"] }}</td>
+                            </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="5">
+                                No mess attendance records to display yet.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+
+        <!-- Project Highlight -->
+        <section class="project-highlight">
+
+            <div class="highlight-icon">
+                <i class="fa-solid fa-utensils"></i>
+            </div>
+
+            <div>
+                <h2>Smart Hostel Mess Management</h2>
+
+                <p>
+                    QR-based meal attendance tracking integrated
+                    with the Smart Attendance System.
+                </p>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

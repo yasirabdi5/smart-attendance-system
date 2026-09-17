@@ -87,7 +87,11 @@ def mark_mess_attendance(student_id):
     connection.commit()
     connection.close()
 
-    return True, f"{meal} attendance marked successfully."
+    return True, {
+        "meal": meal,
+        "entry_time": entry_time,
+        "status": "Consumed"
+    }
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -2308,6 +2312,44 @@ def edit_student(student_id):
         student=student
     )
 
+@app.route("/mess")
+def mess_management():
+
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+
+    meals = connection.execute(
+        """
+        SELECT meal_name, start_time, end_time, is_active
+        FROM meal_config
+        ORDER BY id
+        """
+    ).fetchall()
+
+    today_attendance = connection.execute(
+        """
+        SELECT
+            students.name,
+            students.roll_no,
+            mess_attendance.meal,
+            mess_attendance.entry_time,
+            mess_attendance.status
+        FROM mess_attendance
+        JOIN students
+            ON students.id = mess_attendance.student_id
+        WHERE mess_attendance.date = date('now', 'localtime')
+        ORDER BY mess_attendance.entry_time DESC
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return render_template(
+        "mess_management.html",
+        meals=meals,
+        today_attendance=today_attendance
+    )
+
 # ==========================================
 # MESS QR SCAN
 # ==========================================
@@ -2356,14 +2398,28 @@ def mess_scan():
             "message": "Student not found."
         }), 404
 
-    success, message = mark_mess_attendance(student_id)
+    result = mark_mess_attendance(student_id)
+
+    if result[0] is False:
+        return jsonify({
+            "success": False,
+            "message": result[1],
+            "student_id": student["id"],
+            "name": student["name"],
+            "roll_no": student["roll_no"]
+        })
+
+    attendance = result[1]
 
     return jsonify({
-        "success": success,
-        "message": message,
+        "success": True,
+        "message": "Mess attendance marked successfully.",
         "student_id": student["id"],
         "name": student["name"],
-        "roll_no": student["roll_no"]
+        "roll_no": student["roll_no"],
+        "meal": attendance["meal"],
+        "entry_time": attendance["entry_time"],
+        "status": attendance["status"]
     })
 
 # ==========================================

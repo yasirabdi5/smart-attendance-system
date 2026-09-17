@@ -354,32 +354,16 @@
                 /*
                  * Display backend message.
                  */
-                status.textContent =
-                    data.message;
-
+                status.textContent = data.message;
 
                 if (data.success) {
-
-                    student.textContent =
-                        "Student: " + data.name;
-
-
-                    meal.textContent =
-                        "Roll No: " + data.roll_no;
-
-
-                    time.textContent =
-                        "Student ID: " + data.student_id;
-
-                }
-
-
-                else {
-
+                    student.textContent = "Student: " + data.name;
+                    meal.textContent = "Meal: " + data.meal;
+                    time.textContent = "Entry Time: " + data.entry_time;
+                } else {
                     student.textContent = "";
                     meal.textContent = "";
                     time.textContent = "";
-
                 }
 
             }
