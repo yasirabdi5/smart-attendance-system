@@ -24,13 +24,76 @@ app.secret_key = "smart-attendance-secret-key"
 
 DATABASE = "attendance.db"
 UPLOAD_FOLDER = "static/uploads"
+def get_current_meal():
+    now = datetime.now().strftime("%H:%M")
+
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+
+    meal = connection.execute(
+        """
+        SELECT meal_name
+        FROM meal_config
+        WHERE is_active = 1
+        AND start_time <= ?
+        AND end_time >= ?
+        LIMIT 1
+        """,
+        (now, now)
+    ).fetchone()
+
+    connection.close()
+
+    if meal:
+        return meal["meal_name"]
+
+    return None
+
+def mark_mess_attendance(student_id):
+    meal = get_current_meal()
+
+    if meal is None:
+        return False, "No meal is currently active."
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    entry_time = datetime.now().strftime("%H:%M:%S")
+
+    connection = sqlite3.connect(DATABASE)
+
+    existing = connection.execute(
+        """
+        SELECT id
+        FROM mess_attendance
+        WHERE student_id = ?
+        AND date = ?
+        AND meal = ?
+        """,
+        (student_id, today, meal)
+    ).fetchone()
+
+    if existing:
+        connection.close()
+        return False, f"{meal} already marked."
+
+    connection.execute(
+        """
+        INSERT INTO mess_attendance
+        (student_id, date, meal, entry_time, status)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (student_id, today, meal, entry_time, "Consumed")
+    )
+
+    connection.commit()
+    connection.close()
+
+    return True, {
+        "meal": meal,
+        "entry_time": entry_time,
+        "status": "Consumed"
+    }
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-
-# ==========================================
-# SFace + YuNet Face Recognition
-# ==========================================
 
 SFACE_MODEL_PATH = (
     "face_data/models/face_recognition_sface_2021dec.onnx"
@@ -169,7 +232,7 @@ def recognize_student_from_face(image_path, students):
 
 # ==========================================
 # FACE RECOGNITION SETUP
-# ==========================================
+
 
 FACE_CASCADE_PATH = (
     "face_data/haarcascade_frontalface_default.xml"
@@ -2758,7 +2821,116 @@ def chatbot():
     })
 
 
+@app.route("/mess")
+def mess_management():
 
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+
+    meals = connection.execute(
+        """
+        SELECT meal_name, start_time, end_time, is_active
+        FROM meal_config
+        ORDER BY id
+        """
+    ).fetchall()
+
+    today_attendance = connection.execute(
+        """
+        SELECT
+            students.name,
+            students.roll_no,
+            mess_attendance.meal,
+            mess_attendance.entry_time,
+            mess_attendance.status
+        FROM mess_attendance
+        JOIN students
+            ON students.id = mess_attendance.student_id
+        WHERE mess_attendance.date = date('now', 'localtime')
+        ORDER BY mess_attendance.entry_time DESC
+        """
+    ).fetchall()
+
+    connection.close()
+
+    return render_template(
+        "mess_management.html",
+        meals=meals,
+        today_attendance=today_attendance
+    )
+
+# ==========================================
+# MESS QR SCAN
+# ==========================================
+
+@app.route("/mess/scanner")
+def mess_scanner():
+    return render_template("mess_scanner.html")
+
+@app.route("/mess/scan", methods=["POST"])
+def mess_scan():
+
+    data = request.get_json()
+
+    if not data or "student_id" not in data:
+        return jsonify({
+            "success": False,
+            "message": "Student ID is required."
+        }), 400
+
+    try:
+        student_id = int(data["student_id"])
+        
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "message": "Invalid student ID."
+        }), 400
+
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+
+    student = connection.execute(
+        """
+        SELECT id, name, roll_no
+        FROM students
+        WHERE id = ?
+        """,
+        (student_id,)
+    ).fetchone()
+
+    connection.close()
+
+    if student is None:
+        return jsonify({
+            "success": False,
+            "message": "Student not found."
+        }), 404
+
+    result = mark_mess_attendance(student_id)
+
+    if result[0] is False:
+        return jsonify({
+            "success": False,
+            "message": result[1],
+            "student_id": student["id"],
+            "name": student["name"],
+            "roll_no": student["roll_no"]
+        })
+
+    attendance = result[1]
+
+    return jsonify({
+        "success": True,
+        "message": "Mess attendance marked successfully.",
+        "student_id": student["id"],
+        "name": student["name"],
+        "roll_no": student["roll_no"],
+        "meal": attendance["meal"],
+        "entry_time": attendance["entry_time"],
+        "status": attendance["status"]
+    }
+    )
 # ==========================================
 # RUN APPLICATION
 # ==========================================
@@ -2771,3 +2943,4 @@ if __name__ == "__main__":
         debug=True
     )
 
+print("Current meal:", get_current_meal())

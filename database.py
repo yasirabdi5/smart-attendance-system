@@ -36,6 +36,30 @@ def create_database():
         )
     """)
 
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS mess_attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            meal TEXT NOT NULL,
+            entry_time TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Consumed',
+
+            FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+            UNIQUE (student_id, date, meal)
+        )
+    """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS meal_config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meal_name TEXT NOT NULL UNIQUE,
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1
+        )
+    """)
+
     connection.commit()
     connection.close()
 
