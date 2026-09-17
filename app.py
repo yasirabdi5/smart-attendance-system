@@ -2308,6 +2308,63 @@ def edit_student(student_id):
         student=student
     )
 
+# ==========================================
+# MESS QR SCAN
+# ==========================================
+
+@app.route("/mess/scanner")
+def mess_scanner():
+    return render_template("mess_scanner.html")
+
+@app.route("/mess/scan", methods=["POST"])
+def mess_scan():
+
+    data = request.get_json()
+
+    if not data or "student_id" not in data:
+        return jsonify({
+            "success": False,
+            "message": "Student ID is required."
+        }), 400
+
+    try:
+        student_id = int(data["student_id"])
+        
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "message": "Invalid student ID."
+        }), 400
+
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+
+    student = connection.execute(
+        """
+        SELECT id, name, roll_no
+        FROM students
+        WHERE id = ?
+        """,
+        (student_id,)
+    ).fetchone()
+
+    connection.close()
+
+    if student is None:
+        return jsonify({
+            "success": False,
+            "message": "Student not found."
+        }), 404
+
+    success, message = mark_mess_attendance(student_id)
+
+    return jsonify({
+        "success": success,
+        "message": message,
+        "student_id": student["id"],
+        "name": student["name"],
+        "roll_no": student["roll_no"]
+    })
 
 # ==========================================
 # RUN APPLICATION
