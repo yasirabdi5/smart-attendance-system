@@ -6,3 +6,4 @@ __pycache__/
 attendance.db
 static/uploads/
 face_data/models/
+static/mess_qr/
