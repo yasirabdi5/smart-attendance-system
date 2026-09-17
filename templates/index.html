@@ -101,6 +101,58 @@
 
             </header>
 
+<!-- ==========================================
+     PREMIUM DASHBOARD HERO
+========================================== -->
+
+<section class="dashboard-hero">
+
+    <div class="dashboard-hero-content">
+
+        <span class="hero-eyebrow">
+            <i class="fa-solid fa-sparkles"></i>
+            SMART ATTENDANCE OVERVIEW
+        </span>
+
+        <h2>
+            Good Morning, Admin! 👋
+        </h2>
+
+        <p>
+            Here's your attendance overview for today.
+            Monitor students, attendance and reports from one place.
+        </p>
+
+        <div class="hero-date">
+            <i class="fa-regular fa-calendar"></i>
+            <span id="dashboardDate"></span>
+        </div>
+
+    </div>
+
+    <div class="dashboard-hero-art">
+
+        <div class="hero-orbit orbit-one"></div>
+        <div class="hero-orbit orbit-two"></div>
+
+        <i class="fa-solid fa-graduation-cap hero-cap"></i>
+
+        <div class="hero-books">
+
+            <span></span>
+            <span></span>
+            <span></span>
+
+        </div>
+
+        <div class="hero-slogan">
+            Better Students<br>
+            <strong>Brighter Future</strong>
+        </div>
+
+    </div>
+
+</section>
 
             <!-- Statistics -->
             <section class="stats-grid">
@@ -161,140 +213,727 @@
 
             </section>
 
+            <!-- ==========================================
+     VOICE ATTENDANCE ASSISTANT
+========================================== -->
+<section id="voiceAssistant" class="voice-assistant-section">
 
-            <!-- Quick Actions -->
-            <section class="dashboard-section">
+    <div class="voice-assistant-card">
 
-                <div class="section-heading">
-                    <div>
-                        <h2>Quick Actions</h2>
-                        <p>Access frequently used features.</p>
-                    </div>
+        <div class="voice-assistant-top">
+
+            <div class="voice-assistant-title">
+
+                <div class="voice-ai-icon">
+                    <i class="fa-solid fa-robot"></i>
                 </div>
 
+                <div>
+                    <h2>Voice Attendance Assistant</h2>
 
-                <div class="action-grid">
-
-                    <a href="/admin/manage" class="action-card">
-                        <div class="action-icon">
-                            <i class="fa-solid fa-user-shield"></i>
-                        </div>
-
-                        <div>
-                            <h3>Admin Management</h3>
-                            <p>View, create and manage admin accounts.</p>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-                    </a>
-
-                    <a href="/students" class="action-card">
-
-                        <div class="action-icon">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </div>
-
-                        <div>
-                            <h3>Manage Students</h3>
-                            <p>Add, edit and manage students.</p>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-
-                    </a>
-
-
-                    <a href="/attendance/mark" class="action-card">
-
-                        <div class="action-icon">
-                            <i class="fa-solid fa-calendar-plus"></i>
-                        </div>
-
-                        <div>
-                            <h3>Mark Attendance</h3>
-                            <p>Record today's attendance.</p>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-
-                    </a>
-
-
-                    <a href="/attendance" class="action-card">
-
-                        <div class="action-icon">
-                            <i class="fa-solid fa-list-check"></i>
-                        </div>
-
-                        <div>
-                            <h3>View Attendance</h3>
-                            <p>View and update attendance records.</p>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-
-                    </a>
-
-
-                    <a href="/attendance/percentage" class="action-card">
-
-                        <div class="action-icon">
-                            <i class="fa-solid fa-chart-simple"></i>
-                        </div>
-
-                        <div>
-                            <h3>Attendance Percentage</h3>
-                            <p>Check student attendance percentage.</p>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-
-                    </a>
-
-
-                    <a href="/attendance/report" class="action-card">
-
-                        <div class="action-icon">
-                            <i class="fa-solid fa-chart-column"></i>
-                        </div>
-
-                        <div>
-                            <h3>Attendance Report</h3>
-                            <p>View overall attendance statistics.</p>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-
-                    </a>
-
-
-                    <!-- Future Face Recognition -->
-                    <a href="#" class="action-card face-card">
-
-                        <div class="action-icon">
-                            <i class="fa-solid fa-face-smile"></i>
-                        </div>
-
-                        <div>
-                            <h3>Location restriction</h3>
-                            <p>Ensure attendance is recorded only at designated locations.</p>
-                            <span class="coming-soon">Coming Soon</span>
-                        </div>
-
-                        <i class="fa-solid fa-arrow-right action-arrow"></i>
-
-                    </a>
-
+                    <p>
+                        Ask about students and attendance using your voice.
+                    </p>
                 </div>
 
-            </section>
-
-            <div class="chart-section">
-                <div class="chart-card">
-                    <h3>Today's Attendance</h3>
-                    <canvas id="attendanceChart"></canvas>
-                </div>
             </div>
+
+            <div id="voiceStatus"
+                 class="voice-status">
+                Ready
+            </div>
+
+        </div>
+
+
+        <!-- Voice Button -->
+
+        <button
+            type="button"
+            id="voiceButton"
+            class="voice-main-button">
+
+            <i class="fa-solid fa-microphone"></i>
+
+            <span>
+                Speak Command
+            </span>
+
+        </button>
+
+
+        <!-- What user said -->
+
+        <div
+            id="voiceTranscript"
+            class="voice-transcript">
+
+            <i class="fa-solid fa-comment-dots"></i>
+
+            Say something like:
+            <strong>
+                "Rahul ki attendance batao"
+            </strong>
+
+        </div>
+
+
+        <!-- Assistant message -->
+
+        <div
+            id="assistantResponse"
+            class="assistant-response">
+
+            <div class="assistant-response-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+
+            <div>
+
+                <strong>Assistant</strong>
+
+                <p id="assistantMessage">
+                    Hello! Ask me about any student's
+                    biodata or attendance.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Dynamic result -->
+
+        <div
+            id="assistantResults"
+            class="assistant-results">
+        </div>
+
+
+        <!-- Example commands -->
+
+        <div class="voice-command-examples">
+
+            <span>
+                <i class="fa-solid fa-lightbulb"></i>
+                Try saying:
+            </span>
+
+            <button
+                type="button"
+                onclick="runVoiceCommand('Rahul ki attendance batao')">
+                Rahul attendance
+            </button>
+
+            <button
+                type="button"
+                onclick="runVoiceCommand('Rahul ka biodata dikhao')">
+                Rahul biodata
+            </button>
+
+            <button
+                type="button"
+                onclick="runVoiceCommand('Aaj kaun absent hai')">
+                Today's absent
+            </button>
+
+            <button
+                type="button"
+                onclick="runVoiceCommand('Aaj kaun present hai')">
+                Today's present
+            </button>
+
+            <button
+                type="button"
+                onclick="runVoiceCommand('Sabhi students dikhao')">
+                All students
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+         
+<!-- ==========================================
+     QUICK ACTIONS
+========================================== -->
+
+<section class="dashboard-section quick-actions-section">
+
+    <div class="section-heading">
+
+        <div>
+            <span class="section-eyebrow">
+                SMART TOOLS
+            </span>
+
+            <h2>Quick Actions</h2>
+
+            <p>
+                Access frequently used attendance features.
+            </p>
+        </div>
+
+        <div class="section-heading-icon">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+
+    </div>
+
+
+    <div class="action-grid">
+
+
+        <!-- Admin Management -->
+
+        <a href="/admin/manage"
+           class="action-card action-admin">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+
+                <span class="action-badge">
+                    ADMIN
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Admin Management
+                </h3>
+
+                <p>
+                    Create and manage administrator accounts.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    Manage admins
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- Manage Students -->
+
+        <a href="/students"
+           class="action-card action-students">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+
+                <span class="action-badge">
+                    STUDENTS
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Manage Students
+                </h3>
+
+                <p>
+                    Add, edit and manage student information.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    Open students
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- Mark Attendance -->
+
+        <a href="/attendance/mark"
+           class="action-card action-attendance">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+
+                <span class="action-badge action-live">
+                    LIVE
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Mark Attendance
+                </h3>
+
+                <p>
+                    Record today's attendance using face recognition.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    Mark now
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- View Attendance -->
+
+        <a href="/attendance"
+           class="action-card action-view">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+
+                <span class="action-badge">
+                    RECORDS
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    View Attendance
+                </h3>
+
+                <p>
+                    View and update daily attendance records.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    View records
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- Attendance Percentage -->
+
+        <a href="/attendance/percentage"
+           class="action-card action-percentage">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+
+                <span class="action-badge">
+                    ANALYTICS
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Attendance Percentage
+                </h3>
+
+                <p>
+                    Check student attendance performance.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    View analytics
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- Attendance Reports -->
+
+        <a href="/attendance/report"
+           class="action-card action-reports">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-file-lines"></i>
+                </div>
+
+                <span class="action-badge">
+                    REPORTS
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Attendance Reports
+                </h3>
+
+                <p>
+                    View detailed attendance statistics and reports.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    Open reports
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- Voice Assistant -->
+
+        <a href="#voiceAssistant"
+           class="action-card action-voice"
+           onclick="document.getElementById('voiceButton')?.scrollIntoView({behavior:'smooth'});">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-microphone"></i>
+                </div>
+
+                <span class="action-badge action-ai">
+                    AI
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Voice Assistant
+                </h3>
+
+                <p>
+                    Ask about students and attendance using your voice.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    Ask assistant
+                </span>
+
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- Location Restriction -->
+
+        <div class="action-card action-coming-soon">
+
+            <div class="action-card-top">
+
+                <div class="action-icon">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                </div>
+
+                <span class="action-badge">
+                    SOON
+                </span>
+
+            </div>
+
+            <div class="action-card-content">
+
+                <h3>
+                    Location Restriction
+                </h3>
+
+                <p>
+                    Restrict attendance to designated locations.
+                </p>
+
+            </div>
+
+            <div class="action-card-footer">
+
+                <span>
+                    Coming soon
+                </span>
+
+                <i class="fa-solid fa-lock"></i>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+           <!-- ==========================================
+     ATTENDANCE OVERVIEW + RECENT ACTIVITIES
+========================================== -->
+
+<section class="dashboard-insights">
+
+    <!-- Attendance Overview -->
+
+    <div class="insight-card attendance-overview-card">
+
+        <div class="insight-card-header">
+
+            <div>
+
+                <h3>
+                    <i class="fa-solid fa-chart-column"></i>
+                    Attendance Overview
+                </h3>
+
+                <p>
+                    Today's attendance statistics
+                </p>
+
+            </div>
+
+            <div class="chart-legend">
+
+                <span>
+                    <i class="fa-solid fa-circle"></i>
+                    Present
+                </span>
+
+                <span>
+                    <i class="fa-solid fa-circle"></i>
+                    Absent
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="attendance-chart-wrapper">
+
+            <canvas id="attendanceChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- Recent Activities -->
+
+    <div class="insight-card recent-activities-card">
+
+        <div class="insight-card-header">
+
+            <div>
+
+                <h3>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Recent Activities
+                </h3>
+
+                <p>
+                    Latest system activity
+                </p>
+
+            </div>
+
+            <span class="activity-status">
+                Live
+            </span>
+
+        </div>
+
+
+        <div class="activity-list">
+
+
+            <!-- Activity 1 -->
+
+            <div class="activity-item">
+
+                <div class="activity-icon activity-present">
+
+                    <i class="fa-solid fa-user-check"></i>
+
+                </div>
+
+                <div class="activity-content">
+
+                    <strong>
+                        Attendance marked
+                    </strong>
+
+                    <span>
+                        Today's attendance has been updated
+                    </span>
+
+                </div>
+
+                <small>
+                    Today
+                </small>
+
+            </div>
+
+
+            <!-- Activity 2 -->
+
+            <div class="activity-item">
+
+                <div class="activity-icon activity-student">
+
+                    <i class="fa-solid fa-user-plus"></i>
+
+                </div>
+
+                <div class="activity-content">
+
+                    <strong>
+                        Student management
+                    </strong>
+
+                    <span>
+                        Student records are available
+                    </span>
+
+                </div>
+
+                <small>
+                    Today
+                </small>
+
+            </div>
+
+
+            <!-- Activity 3 -->
+
+            <div class="activity-item">
+
+                <div class="activity-icon activity-report">
+
+                    <i class="fa-solid fa-file-lines"></i>
+
+                </div>
+
+                <div class="activity-content">
+
+                    <strong>
+                        Attendance reports
+                    </strong>
+
+                    <span>
+                        Reports are ready to view
+                    </span>
+
+                </div>
+
+                <small>
+                    Today
+                </small>
+
+            </div>
+
+
+            <!-- Activity 4 -->
+
+            <div class="activity-item">
+
+                <div class="activity-icon activity-voice">
+
+                    <i class="fa-solid fa-microphone"></i>
+
+                </div>
+
+                <div class="activity-content">
+
+                    <strong>
+                        Voice Assistant
+                    </strong>
+
+                    <span>
+                        Voice commands are ready
+                    </span>
+
+                </div>
+
+                <small>
+                    Ready
+                </small>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
 
             <!-- Project Highlight -->
             <section class="project-highlight">
@@ -318,6 +957,1044 @@
     </div>
     
     <script>
+
+/* ==========================================
+   VOICE ATTENDANCE ASSISTANT
+========================================== */
+
+let recognition = null;
+let isListening = false;
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+const voiceButton =
+    document.getElementById("voiceButton");
+
+const voiceStatus =
+    document.getElementById("voiceStatus");
+
+const voiceTranscript =
+    document.getElementById("voiceTranscript");
+
+const assistantMessage =
+    document.getElementById("assistantMessage");
+
+const assistantResults =
+    document.getElementById("assistantResults");
+
+
+/* ==========================================
+   INITIALIZE VOICE RECOGNITION
+========================================== */
+
+if (SpeechRecognition) {
+
+    recognition =
+        new SpeechRecognition();
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+    /*
+       en-IN works well for English/Hinglish.
+       Change to hi-IN if you mainly speak Hindi.
+    */
+    recognition.lang = "en-IN";
+
+    recognition.maxAlternatives = 1;
+
+
+    recognition.onstart = function () {
+
+        isListening = true;
+
+        voiceButton.classList.add(
+            "listening"
+        );
+
+        voiceButton.innerHTML =
+            '<i class="fa-solid fa-microphone"></i>' +
+            '<span>Listening...</span>';
+
+        voiceStatus.textContent =
+            "Listening...";
+
+    };
+
+
+    recognition.onresult = function(event) {
+
+        const transcript =
+            event.results[0][0].transcript;
+
+        voiceTranscript.innerHTML =
+            '<i class="fa-solid fa-comment-dots"></i> ' +
+            'You said: <strong>' +
+            escapeHtml(transcript) +
+            '</strong>';
+
+        processVoiceCommand(
+            transcript
+        );
+
+    };
+
+
+    recognition.onerror = function(event) {
+
+        console.log(
+            "Voice error:",
+            event.error
+        );
+
+        isListening = false;
+
+        voiceButton.classList.remove(
+            "listening"
+        );
+
+        voiceButton.innerHTML =
+            '<i class="fa-solid fa-microphone"></i>' +
+            '<span>Speak Command</span>';
+
+        voiceStatus.textContent =
+            "Try Again";
+
+        assistantMessage.textContent =
+            "I could not hear you clearly. Please try again.";
+
+    };
+
+
+    recognition.onend = function() {
+
+        isListening = false;
+
+        voiceButton.classList.remove(
+            "listening"
+        );
+
+        voiceButton.innerHTML =
+            '<i class="fa-solid fa-microphone"></i>' +
+            '<span>Speak Command</span>';
+
+        if (
+            voiceStatus.textContent ===
+            "Listening..."
+        ) {
+
+            voiceStatus.textContent =
+                "Ready";
+
+        }
+
+    };
+
+}
+else {
+
+    voiceButton.disabled = true;
+
+    voiceButton.innerHTML =
+        '<i class="fa-solid fa-circle-xmark"></i>' +
+        '<span>Voice Not Supported</span>';
+
+    voiceStatus.textContent =
+        "Use Chrome or Edge";
+
+}
+
+
+/* ==========================================
+   MICROPHONE BUTTON
+========================================== */
+
+voiceButton.addEventListener(
+    "click",
+    function() {
+
+        if (!recognition) {
+
+            alert(
+                "Voice recognition is not supported. " +
+                "Please use Google Chrome or Microsoft Edge."
+            );
+
+            return;
+
+        }
+
+
+        if (isListening) {
+
+            recognition.stop();
+
+            return;
+
+        }
+
+
+        assistantResults.innerHTML =
+            "";
+
+        voiceTranscript.innerHTML =
+            '<i class="fa-solid fa-microphone"></i> ' +
+            'Listening...';
+
+        voiceStatus.textContent =
+            "Listening...";
+
+        recognition.start();
+
+    }
+);
+
+
+/* ==========================================
+   PROCESS COMMAND
+========================================== */
+
+function processVoiceCommand(
+    command
+) {
+
+    assistantMessage.textContent =
+        "Processing your command...";
+
+    voiceStatus.textContent =
+        "Processing...";
+
+
+    fetch(
+        "/chatbot",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body: JSON.stringify({
+                message: command
+            })
+        }
+    )
+    .then(function(response) {
+
+        if (!response.ok) {
+            throw new Error(
+                "Server error"
+            );
+        }
+
+        return response.json();
+
+    })
+    .then(function(data) {
+
+        handleAssistantResponse(
+            data
+        );
+
+    })
+    .catch(function(error) {
+
+        console.error(error);
+
+        assistantMessage.textContent =
+            "Unable to connect to the attendance assistant.";
+
+        voiceStatus.textContent =
+            "Error";
+
+    });
+
+}
+
+
+/* ==========================================
+   QUICK COMMAND
+========================================== */
+
+function runVoiceCommand(
+    command
+) {
+
+    voiceTranscript.innerHTML =
+        '<i class="fa-solid fa-comment-dots"></i> ' +
+        'Command: <strong>' +
+        escapeHtml(command) +
+        '</strong>';
+
+    processVoiceCommand(
+        command
+    );
+
+}
+
+
+/* ==========================================
+   HANDLE BACKEND RESPONSE
+========================================== */
+
+function handleAssistantResponse(
+    data
+) {
+
+    voiceStatus.textContent =
+        "Ready";
+
+
+    if (!data.success) {
+
+        assistantMessage.textContent =
+            data.message ||
+            "Something went wrong.";
+
+        speakResponse(
+            assistantMessage.textContent
+        );
+
+        return;
+
+    }
+
+
+    assistantMessage.textContent =
+        data.message || "";
+
+
+    assistantResults.innerHTML =
+        "";
+
+
+    if (
+        data.type ===
+        "student_profile"
+    ) {
+
+        renderStudentProfile(
+            data
+        );
+
+    }
+
+
+    else if (
+        data.type ===
+        "attendance"
+    ) {
+
+        renderAttendance(
+            data
+        );
+
+    }
+
+
+    else if (
+        data.type ===
+        "student_info"
+    ) {
+
+        renderStudentInfo(
+            data
+        );
+
+    }
+
+
+    else if (
+        data.type ===
+        "today_list"
+    ) {
+
+        renderStudentList(
+            data
+        );
+
+    }
+
+
+    else if (
+        data.type ===
+        "student_list"
+    ) {
+
+        renderStudentList(
+            data
+        );
+
+    }
+
+
+    else if (
+        data.type ===
+        "low_attendance"
+    ) {
+
+        renderLowAttendance(
+            data
+        );
+
+    }
+
+
+    else if (
+        data.type ===
+        "help"
+    ) {
+
+        renderHelp(
+            data
+        );
+
+    }
+
+
+    speakResponse(
+        data.message || ""
+    );
+
+}
+
+
+/* ==========================================
+   STUDENT PROFILE
+========================================== */
+
+function renderStudentProfile(
+    data
+) {
+
+    const student =
+        data.student;
+
+    const attendance =
+        data.attendance;
+
+
+    assistantResults.innerHTML = `
+
+        <div class="ai-student-card">
+
+            <div class="ai-photo-container">
+
+                ${
+                    student.photo_url
+                    ?
+                    `
+                    <img
+                        src="${student.photo_url}"
+                        class="ai-student-photo"
+                        alt="Student"
+                    >
+                    `
+                    :
+                    `
+                    <div class="ai-photo-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    `
+                }
+
+            </div>
+
+
+            <div class="ai-student-details">
+
+                <h3>
+                    ${escapeHtml(student.name)}
+                </h3>
+
+                <p>
+                    <i class="fa-solid fa-id-card"></i>
+                    Roll No:
+                    <strong>
+                        ${escapeHtml(student.roll_no)}
+                    </strong>
+                </p>
+
+                <p>
+                    <i class="fa-solid fa-envelope"></i>
+                    ${escapeHtml(student.email)}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        ${renderAttendanceBox(attendance)}
+
+    `;
+
+}
+
+
+/* ==========================================
+   STUDENT INFO
+========================================== */
+
+function renderStudentInfo(
+    data
+) {
+
+    const student =
+        data.student;
+
+
+    assistantResults.innerHTML = `
+
+        <div class="ai-student-card">
+
+            <div class="ai-photo-container">
+
+                ${
+                    student.photo_url
+                    ?
+                    `
+                    <img
+                        src="${student.photo_url}"
+                        class="ai-student-photo"
+                        alt="Student"
+                    >
+                    `
+                    :
+                    `
+                    <div class="ai-photo-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    `
+                }
+
+            </div>
+
+
+            <div class="ai-student-details">
+
+                <h3>
+                    ${escapeHtml(student.name)}
+                </h3>
+
+                <p>
+                    <i class="fa-solid fa-id-card"></i>
+                    Roll No:
+                    <strong>
+                        ${escapeHtml(student.roll_no)}
+                    </strong>
+                </p>
+
+                <p>
+                    <i class="fa-solid fa-envelope"></i>
+                    ${escapeHtml(student.email)}
+                </p>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+/* ==========================================
+   ATTENDANCE
+========================================== */
+
+function renderAttendance(
+    data
+) {
+
+    const student =
+        data.student;
+
+    const attendance =
+        data.attendance;
+
+
+    assistantResults.innerHTML = `
+
+        <div class="ai-student-card">
+
+            <div class="ai-photo-container">
+
+                ${
+                    student.photo_url
+                    ?
+                    `
+                    <img
+                        src="${student.photo_url}"
+                        class="ai-student-photo"
+                        alt="Student"
+                    >
+                    `
+                    :
+                    `
+                    <div class="ai-photo-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    `
+                }
+
+            </div>
+
+
+            <div class="ai-student-details">
+
+                <h3>
+                    ${escapeHtml(student.name)}
+                </h3>
+
+                <p>
+                    <i class="fa-solid fa-id-card"></i>
+                    Roll No:
+                    <strong>
+                        ${escapeHtml(student.roll_no)}
+                    </strong>
+                </p>
+
+            </div>
+
+        </div>
+
+
+        ${renderAttendanceBox(attendance)}
+
+    `;
+
+}
+
+
+/* ==========================================
+   ATTENDANCE BOX
+========================================== */
+
+function renderAttendanceBox(
+    attendance
+) {
+
+    const records =
+        attendance.records ||
+        attendance.recent ||
+        [];
+
+    const present =
+        attendance.present ??
+        attendance.present_days ??
+        0;
+
+    const absent =
+        attendance.absent ??
+        attendance.absent_days ??
+        0;
+
+    const total =
+        attendance.total ??
+        attendance.total_days ??
+        0;
+
+    const percentage =
+        attendance.percentage ??
+        0;
+
+    return `
+
+        <div class="ai-attendance-grid">
+
+            <div class="ai-attendance-stat">
+
+                <span>
+                    Present
+                </span>
+
+                <strong class="ai-present">
+                    ${present}
+                </strong>
+
+            </div>
+
+
+            <div class="ai-attendance-stat">
+
+                <span>
+                    Absent
+                </span>
+
+                <strong class="ai-absent">
+                    ${absent}
+                </strong>
+
+            </div>
+
+
+            <div class="ai-attendance-stat">
+
+                <span>
+                    Total
+                </span>
+
+                <strong>
+                    ${total}
+                </strong>
+
+            </div>
+
+
+            <div class="ai-attendance-stat">
+
+                <span>
+                    Percentage
+                </span>
+
+                <strong>
+                    ${percentage}%
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        ${
+            records.length > 0
+            ?
+            `
+
+            <div class="ai-recent">
+
+                <h4>
+                    Recent Attendance
+                </h4>
+
+                ${
+                    records
+                    .slice(0, 7)
+                    .map(function(record) {
+
+                        return `
+
+                            <div class="ai-attendance-row">
+
+                                <span>
+                                    ${record.date}
+                                </span>
+
+                                <strong class="${
+                                    record.status === "Present"
+                                    ? "ai-present"
+                                    : "ai-absent"
+                                }">
+                                    ${record.status}
+                                </strong>
+
+                            </div>
+
+                        `;
+
+                    })
+                    .join("")
+                }
+
+            </div>
+
+            `
+            :
+            ""
+        }
+
+    `;
+
+}
+
+
+/* ==========================================
+   STUDENT LIST
+========================================== */
+
+function renderStudentList(
+    data
+) {
+
+    if (
+        !data.students ||
+        data.students.length === 0
+    ) {
+
+        assistantResults.innerHTML = `
+            <div class="ai-empty">
+                No students found.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    assistantResults.innerHTML = `
+
+        <div class="ai-student-list">
+
+            <h3>
+                <i class="fa-solid fa-users"></i>
+                ${data.status || "Students"}
+            </h3>
+
+
+            ${
+                data.students
+                .map(function(student) {
+
+                    return `
+
+                        <div class="ai-list-item">
+
+                            ${
+                                student.photo_url
+                                ?
+                                `
+                                <img
+                                    src="${student.photo_url}"
+                                    class="ai-list-photo"
+                                    alt=""
+                                >
+                                `
+                                :
+                                `
+                                <div class="ai-list-photo-placeholder">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                `
+                            }
+
+
+                            <div class="ai-list-info">
+
+                                <strong>
+                                    ${escapeHtml(student.name)}
+                                </strong>
+
+                                <span>
+                                    Roll No:
+                                    ${escapeHtml(student.roll_no)}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                })
+                .join("")
+            }
+
+        </div>
+
+    `;
+
+}
+
+
+/* ==========================================
+   LOW ATTENDANCE
+========================================== */
+
+function renderLowAttendance(
+    data
+) {
+
+    if (
+        !data.students ||
+        data.students.length === 0
+    ) {
+
+        assistantResults.innerHTML = `
+            <div class="ai-empty">
+                No students found below this percentage.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    assistantResults.innerHTML = `
+
+        <div class="ai-student-list">
+
+            <h3>
+                Low Attendance Students
+            </h3>
+
+
+            ${
+                data.students
+                .map(function(student) {
+
+                    return `
+
+                        <div class="ai-list-item">
+
+                            <div class="ai-list-info">
+
+                                <strong>
+                                    ${escapeHtml(student.name)}
+                                </strong>
+
+                                <span>
+                                    Roll No:
+                                    ${escapeHtml(student.roll_no)}
+                                </span>
+
+                            </div>
+
+                            <strong class="ai-absent">
+                                ${student.percentage}%
+                            </strong>
+
+                        </div>
+
+                    `;
+
+                })
+                .join("")
+            }
+
+        </div>
+
+    `;
+
+}
+
+
+/* ==========================================
+   HELP
+========================================== */
+
+function renderHelp(
+    data
+) {
+
+    assistantResults.innerHTML = `
+
+        <div class="ai-help">
+
+            <h3>
+                🎤 Voice Commands
+            </h3>
+
+            ${
+                data.commands
+                .map(function(command) {
+
+                    return `
+                        <button
+                            type="button"
+                            onclick="runVoiceCommand('${command.replace(/'/g, "\\'")}')"
+                        >
+                            ${escapeHtml(command)}
+                        </button>
+                    `;
+
+                })
+                .join("")
+            }
+
+        </div>
+
+    `;
+
+}
+
+
+/* ==========================================
+   TEXT TO SPEECH
+========================================== */
+
+function speakResponse(
+    text
+) {
+
+    if (
+        !text ||
+        !window.speechSynthesis
+    ) {
+        return;
+    }
+
+
+    window.speechSynthesis.cancel();
+
+
+    const speech =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+    speech.lang = "en-IN";
+
+    speech.rate = 0.95;
+
+    speech.pitch = 1;
+
+
+    window.speechSynthesis.speak(
+        speech
+    );
+
+}
+
+
+/* ==========================================
+   HTML ESCAPE
+========================================== */
+
+function escapeHtml(
+    value
+) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+</script>
+
+<script>
+    const dashboardDate =
+        document.getElementById("dashboardDate");
+
+    if (dashboardDate) {
+
+        const today = new Date();
+
+        dashboardDate.textContent =
+            today.toLocaleDateString(
+                "en-IN",
+                {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                }
+            );
+
+    }
+</script>
+
+    <script>
         const attendanceData = {
             present: Number("{{ chart_present }}"),
             absent: Number("{{ chart_absent }}")
@@ -336,10 +2013,16 @@
                     ]
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
+           options: {
+    responsive: true,
+    maintainAspectRatio: false,
+
+    plugins: {
+        legend: {
+            display: false
+        }
+    }
+}
         });
     </script>
 

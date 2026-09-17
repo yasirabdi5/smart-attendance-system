@@ -2244,6 +2244,520 @@ def edit_student(student_id):
         student=student
     )
 
+# ==========================================
+# ADVANCED ATTENDANCE CHATBOT
+# ==========================================
+
+@app.route("/chatbot", methods=["POST"])
+def chatbot():
+
+    if not session.get("admin_logged_in"):
+        return jsonify({
+            "success": False,
+            "message": "Please login as administrator."
+        }), 401
+
+    data = request.get_json(silent=True) or {}
+    message = str(data.get("message", "")).strip()
+
+    if not message:
+        return jsonify({
+            "success": False,
+            "message": "Please enter a command."
+        })
+
+    query = message.lower()
+
+    conn = get_db_connection()
+
+    # ------------------------------------------
+    # ALL STUDENTS
+    # ------------------------------------------
+
+    if (
+        "all students" in query
+        or "sabhi students" in query
+        or "saare students" in query
+        or "students dikhao" in query
+    ):
+
+        students = conn.execute("""
+            SELECT id, name, roll_no, email
+            FROM students
+            ORDER BY name
+        """).fetchall()
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "student_list",
+            "message": "Here are all registered students.",
+            "students": [
+                {
+                    "id": s["id"],
+                    "name": s["name"],
+                    "roll_no": s["roll_no"],
+                    "email": s["email"]
+                }
+                for s in students
+            ]
+        })
+
+    # ------------------------------------------
+    # TODAY'S ABSENT
+    # ------------------------------------------
+
+    if (
+        "today's absent" in query
+        or "todays absent" in query
+        or "aaj kaun absent" in query
+        or "aaj absent" in query
+    ):
+
+        today = datetime.now().strftime("%Y-%m-%d")
+        ensure_attendance_for_date(today)
+
+        students = conn.execute("""
+            SELECT s.name, s.roll_no
+            FROM students s
+            JOIN attendance a
+                ON s.id = a.student_id
+            WHERE a.date = ?
+            AND a.status = 'Absent'
+            ORDER BY s.roll_no
+        """, (today,)).fetchall()
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "student_list",
+            "message": f"Absent students today: {len(students)}",
+            "students": [
+                {
+                    "name": s["name"],
+                    "roll_no": s["roll_no"]
+                }
+                for s in students
+            ]
+        })
+
+    # ------------------------------------------
+    # TODAY'S PRESENT
+    # ------------------------------------------
+
+    if (
+        "today's present" in query
+        or "todays present" in query
+        or "aaj kaun present" in query
+        or "aaj present" in query
+    ):
+
+        today = datetime.now().strftime("%Y-%m-%d")
+        ensure_attendance_for_date(today)
+
+        students = conn.execute("""
+            SELECT s.name, s.roll_no
+            FROM students s
+            JOIN attendance a
+                ON s.id = a.student_id
+            WHERE a.date = ?
+            AND a.status = 'Present'
+            ORDER BY s.roll_no
+        """, (today,)).fetchall()
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "student_list",
+            "message": f"Present students today: {len(students)}",
+            "students": [
+                {
+                    "name": s["name"],
+                    "roll_no": s["roll_no"]
+                }
+                for s in students
+            ]
+        })
+
+        # ------------------------------------------
+    # LOW ATTENDANCE STUDENTS
+    # ------------------------------------------
+
+    if (
+        "low attendance" in query
+        or "low attendance students" in query
+        or "kam attendance" in query
+        or "kam attendance wale" in query
+        or "75 percent se kam" in query
+        or "75% se kam" in query
+    ):
+
+        students = conn.execute("""
+            SELECT
+                s.name,
+                s.roll_no,
+                COUNT(a.id) AS total_days,
+                SUM(
+                    CASE
+                        WHEN a.status = 'Present' THEN 1
+                        ELSE 0
+                    END
+                ) AS present_days
+            FROM students s
+            LEFT JOIN attendance a
+                ON s.id = a.student_id
+            GROUP BY s.id
+            ORDER BY s.roll_no
+        """).fetchall()
+
+        low_students = []
+
+        for s in students:
+
+            total_days = s["total_days"] or 0
+            present_days = s["present_days"] or 0
+
+            percentage = (
+                (present_days / total_days) * 100
+                if total_days > 0
+                else 0
+            )
+
+            if total_days > 0 and percentage < 75:
+                low_students.append({
+                    "name": s["name"],
+                    "roll_no": s["roll_no"],
+                    "percentage": round(percentage, 2)
+                })
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "low_attendance",
+            "message": f"Students with attendance below 75%: {len(low_students)}",
+            "students": low_students
+        })
+
+# ------------------------------------------
+    # SEARCH STUDENT BY ROLL NUMBER
+    # ------------------------------------------
+
+    import re
+
+    roll_match = re.search(
+        r"(?:student\s*|roll\s*(?:no|number)?|roll)\s*[:#-]?\s*(\d+)",
+        query
+    )
+    
+
+    student = None
+
+    if roll_match:
+
+        roll_no = roll_match.group(1)
+
+        student = conn.execute("""
+            SELECT *
+            FROM students
+            WHERE roll_no = ?
+        """, (roll_no,)).fetchone()
+
+    # ------------------------------------------
+    # SEARCH STUDENT BY NAME
+    # ------------------------------------------
+
+    if student is None:
+
+        students = conn.execute("""
+            SELECT *
+            FROM students
+            ORDER BY name
+        """).fetchall()
+
+        for s in students:
+
+            name = s["name"].lower()
+
+            if name in query:
+                student = s
+                break
+
+    # ------------------------------------------
+    # STUDENT NOT FOUND
+    # ------------------------------------------
+
+    if student is None:
+
+        conn.close()
+
+        return jsonify({
+            "success": False,
+            "type": "text",
+            "message": (
+                "Student nahi mila. "
+                "Please student ka naam ya roll number clearly likhein."
+            )
+        })
+
+    student_id = student["id"]
+
+    # ------------------------------------------
+    # STUDENT ATTENDANCE
+    # ------------------------------------------
+
+    attendance = conn.execute("""
+        SELECT date, status
+        FROM attendance
+        WHERE student_id = ?
+        ORDER BY date DESC
+    """, (student_id,)).fetchall()
+
+    total_days = len(attendance)
+
+    present_days = sum(
+        1 for a in attendance
+        if a["status"] == "Present"
+    )
+
+    absent_days = sum(
+        1 for a in attendance
+        if a["status"] == "Absent"
+    )
+
+    percentage = (
+        (present_days / total_days) * 100
+        if total_days > 0
+        else 0
+    )
+
+    # ------------------------------------------
+    # EMAIL
+    # ------------------------------------------
+
+    if "email" in query:
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "student_info",
+            "message": f"{student['name']} ka email hai: {student['email']}",
+            "student": {
+                "name": student["name"],
+                "roll_no": student["roll_no"],
+                "email": student["email"]
+            }
+        })
+
+    # ------------------------------------------
+    # ROLL NUMBER
+    # ------------------------------------------
+
+    if (
+        (
+            "roll number" in query
+            or "roll no" in query
+            or "roll" in query
+            or "ka number" in query
+        )
+        and "attendance" not in query
+        and "percentage" not in query
+        and "present" not in query
+        and "absent" not in query
+        and "email" not in query
+        and "naam" not in query
+        and "name" not in query
+    ):
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "student_info",
+            "message": (
+                f"{student['name']} ka roll number hai "
+                f"{student['roll_no']}."
+            ),
+            "student": {
+                "name": student["name"],
+                "roll_no": student["roll_no"],
+                "email": student["email"]
+            }
+        })
+
+    # ------------------------------------------
+    # PRESENT DAYS
+    # ------------------------------------------
+
+    if (
+        "present" in query
+        and (
+            "kitne" in query
+            or "days" in query
+            or "din" in query
+            or "attendance" in query
+        )
+    ):
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "attendance",
+            "message": (
+                f"{student['name']} {present_days} din present tha."
+            ),
+            "student": {
+                "name": student["name"],
+                "roll_no": student["roll_no"],
+                "email": student["email"]
+            },
+            "attendance": {
+                "total_days": total_days,
+                "present_days": present_days,
+                "absent_days": absent_days,
+                "percentage": round(percentage, 2)
+            }
+        })
+
+    # ------------------------------------------
+    # ABSENT DAYS
+    # ------------------------------------------
+
+    if (
+        "absent" in query
+        and (
+            "kitne" in query
+            or "days" in query
+            or "din" in query
+            or "attendance" in query
+        )
+    ):
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "attendance",
+            "message": (
+                f"{student['name']} {absent_days} din absent tha."
+            ),
+            "student": {
+                "name": student["name"],
+                "roll_no": student["roll_no"],
+                "email": student["email"]
+            },
+            "attendance": {
+                "total_days": total_days,
+                "present_days": present_days,
+                "absent_days": absent_days,
+                "percentage": round(percentage, 2)
+            }
+        })
+
+    # ------------------------------------------
+    # ATTENDANCE / PERCENTAGE
+    # ------------------------------------------
+
+    if (
+        "attendance" in query
+        or "percentage" in query
+        or "%" in query
+    ):
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "attendance",
+            "message": (
+                f"{student['name']} ki attendance "
+                f"{round(percentage, 2)}% hai."
+            ),
+            "student": {
+                "name": student["name"],
+                "roll_no": student["roll_no"],
+                "email": student["email"]
+            },
+            "attendance": {
+                "total_days": total_days,
+                "present_days": present_days,
+                "absent_days": absent_days,
+                "percentage": round(percentage, 2),
+                "recent": [
+                    {
+                        "date": a["date"],
+                        "status": a["status"]
+                    }
+                    for a in attendance[:10]
+                ]
+            }
+        })
+    
+    # ------------------------------------------
+    # STUDENT NAME
+    # ------------------------------------------
+
+    if (
+        "naam" in query
+        or "name" in query
+    ):
+
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "type": "student_info",
+            "message": f"Student ka naam {student['name']} hai.",
+            "student": {
+                "name": student["name"],
+                "roll_no": student["roll_no"],
+                "email": student["email"]
+            }
+        })
+
+
+    # ------------------------------------------
+    # DEFAULT = FULL BIO DATA
+    # ------------------------------------------
+
+
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "type": "student_profile",
+
+        "message": f"{student['name']} ki complete details:",
+
+        "student": {
+            "id": student["id"],
+            "name": student["name"],
+            "roll_no": student["roll_no"],
+            "email": student["email"]
+        },
+
+        "attendance": {
+            "total": total_days,
+            "present": present_days,
+            "absent": absent_days,
+            "percentage": round(percentage, 2),
+
+            "records": [
+                {
+                    "date": a["date"],
+                    "status": a["status"]
+                }
+                for a in attendance[:10]
+            ]
+        }
+    })
+
+
 
 # ==========================================
 # RUN APPLICATION

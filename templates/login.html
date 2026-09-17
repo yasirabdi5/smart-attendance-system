@@ -3,85 +3,1429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Login - Smart Attendance System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='styles.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-        .tab-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; color: #666; }
-        .tab-btn.active { color: #007bff; border-bottom: 3px solid #007bff; margin-bottom: -2px; }
-        .form-section { display: none; }
-        .form-section.active { display: block; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-        input { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        button.submit-btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button.submit-btn:hover { background: #0056b3; }
-        .error { color: red; margin-bottom: 15px; font-size: 14px; font-weight: bold; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(0, 132, 255, 0.18),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 80%,
+                    rgba(0, 238, 255, 0.12),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #020817,
+                    #03152f 50%,
+                    #020817
+                );
+
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .background-glow {
+            position: fixed;
+            width: 420px;
+            height: 420px;
+
+            border-radius: 50%;
+
+            filter: blur(100px);
+            opacity: 0.18;
+
+            pointer-events: none;
+        }
+
+        .glow-one {
+            background: #1687ff;
+            top: -180px;
+            left: -150px;
+        }
+
+        .glow-two {
+            background: #00d9ff;
+            right: -180px;
+            bottom: -180px;
+        }
+
+        .login-wrapper {
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 1180px;
+            min-height: 680px;
+
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+
+            background: rgba(3, 18, 40, 0.72);
+
+            border: 1px solid rgba(80, 180, 255, 0.28);
+
+            border-radius: 28px;
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+            overflow: hidden;
+        }
+
+        /* LEFT */
+
+        .login-left {
+            position: relative;
+
+            padding: 55px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            background:
+                radial-gradient(
+                    circle at 70% 35%,
+                    rgba(0, 136, 255, 0.16),
+                    transparent 35%
+                );
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 52px;
+            height: 52px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1597ff,
+                    #0064ff
+                );
+
+            box-shadow:
+                0 0 30px rgba(0, 136, 255, 0.35);
+        }
+
+        .brand-icon i {
+            font-size: 24px;
+        }
+
+        .brand-text h2 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+
+            font-size: 11px;
+            color: #8da9c7;
+        }
+
+        .hero-content {
+            margin-top: 30px;
+            max-width: 520px;
+        }
+
+        .hero-content h1 {
+            font-size: clamp(42px, 5vw, 68px);
+            line-height: 1.03;
+
+            letter-spacing: -3px;
+            font-weight: 800;
+        }
+
+        .gradient-text {
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff,
+                    #72aaff,
+                    #00d9ff
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            color: transparent;
+        }
+
+        .hero-content p {
+            margin-top: 24px;
+
+            max-width: 470px;
+
+            color: #a8bdd6;
+
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-wrap: wrap;
+
+            gap: 12px;
+
+            margin-top: 30px;
+        }
+
+        .feature-pill {
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 10px 14px;
+
+            border-radius: 50px;
+
+            background: rgba(8, 42, 78, 0.55);
+
+            border: 1px solid rgba(60, 170, 255, 0.2);
+
+            color: #c9def3;
+
+            font-size: 12px;
+        }
+
+        .feature-pill i {
+            color: #35cfff;
+        }
+
+        .security-info {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            color: #7894b1;
+
+            font-size: 12px;
+        }
+
+        .security-info i {
+            color: #20d68a;
+        }
+
+        /* RIGHT */
+
+        .login-right {
+            padding: 55px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(1, 12, 28, 0.38);
+
+            border-left: 1px solid rgba(80, 180, 255, 0.13);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 430px;
+        }
+
+        .login-header {
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+        .login-icon {
+            width: 66px;
+            height: 66px;
+
+            margin: 0 auto 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(34, 145, 255, 0.2),
+                    rgba(0, 217, 255, 0.08)
+                );
+
+            border: 1px solid rgba(68, 175, 255, 0.3);
+
+            box-shadow:
+                0 0 35px rgba(0, 132, 255, 0.12);
+        }
+
+        .login-icon i {
+            font-size: 27px;
+            color: #55aaff;
+        }
+
+        .login-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .login-header p {
+            margin-top: 7px;
+
+            color: #7895b3;
+
+            font-size: 12px;
+        }
+
+        /* TABS */
+
+        .login-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            padding: 4px;
+
+            background: rgba(5, 30, 58, 0.8);
+
+            border: 1px solid rgba(60, 160, 255, 0.2);
+
+            border-radius: 50px;
+
+            margin-bottom: 27px;
+        }
+
+        .tab-btn {
+            border: none;
+            outline: none;
+
+            padding: 12px;
+
+            border-radius: 50px;
+
+            background: transparent;
+
+            color: #7392b2;
+
+            font-family: inherit;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: 0.25s ease;
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #2496ff,
+                    #1468ef
+                );
+
+            box-shadow:
+                0 8px 22px rgba(20, 112, 255, 0.28);
+        }
+
+        .tab-btn:not(.active):hover {
+            color: #c3ddf5;
+            background: rgba(40, 120, 190, 0.10);
+        }
+
+        /* FORM */
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #b5c9df;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+
+            left: 16px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: #6590b7;
+
+            font-size: 14px;
+
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 53px;
+
+            padding: 0 46px;
+
+            border-radius: 12px;
+
+            border: 1px solid rgba(67, 139, 199, 0.35);
+
+            background: rgba(6, 34, 64, 0.7);
+
+            color: #ffffff;
+
+            outline: none;
+
+            font-family: inherit;
+            font-size: 13px;
+
+            transition: 0.25s ease;
+        }
+
+        .form-control::placeholder {
+            color: #547390;
+        }
+
+        .form-control:focus {
+            border-color: #258dff;
+
+            background: rgba(8, 42, 77, 0.85);
+
+            box-shadow:
+                0 0 0 3px rgba(37, 141, 255, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+
+            right: 10px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            width: 32px;
+            height: 32px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: transparent;
+
+            color: #6e91b2;
+
+            cursor: pointer;
+
+            font-size: 14px;
+        }
+
+        .password-toggle:hover {
+            color: #ffffff;
+            background: rgba(65, 155, 230, 0.10);
+        }
+
+        /* ERROR */
+
+        .error {
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 12px 14px;
+
+            margin-bottom: 18px;
+
+            border-radius: 10px;
+
+            background: rgba(255, 61, 91, 0.1);
+
+            border: 1px solid rgba(255, 61, 91, 0.25);
+
+            color: #ff7188;
+
+            font-size: 12px;
+        }
+
+        /* BUTTON */
+
+        .submit-btn {
+            width: 100%;
+            height: 53px;
+
+            margin-top: 7px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 2px;
+
+            border: 1px solid rgba(108, 198, 255, 0.18);
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    #2496ff,
+                    #1468ef,
+                    #168fff
+                );
+
+            background-size: 200% 100%;
+
+            color: #ffffff;
+
+            font-family: inherit;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 30px rgba(20, 103, 245, 0.25);
+
+            transition: 0.25s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+
+            background-position: 100% 0;
+
+            box-shadow:
+                0 14px 38px rgba(20, 103, 245, 0.42);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn i {
+            margin-left: 7px;
+
+            transition: transform 0.2s ease;
+        }
+
+        .submit-btn:hover i {
+            transform: translateX(3px);
+        }
+
+        .login-footer {
+            margin-top: 25px;
+
+            text-align: center;
+
+            color: #5d7b99;
+
+            font-size: 10px;
+
+            line-height: 1.7;
+        }
+
+        .login-footer i {
+            color: #24d98a;
+            margin-right: 5px;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 900px) {
+
+            .login-container {
+                grid-template-columns: 1fr;
+
+                max-width: 520px;
+                min-height: auto;
+            }
+
+            .login-left {
+                display: none;
+            }
+
+            .login-right {
+                border-left: none;
+                padding: 45px 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .login-wrapper {
+                padding: 15px;
+            }
+
+            .login-container {
+                border-radius: 20px;
+            }
+
+            .login-right {
+                padding: 30px 18px;
+            }
+
+            .login-card {
+                padding: 4px;
+            }
+
+            .login-header h2 {
+                font-size: 24px;
+            }
+        }
+
+/* =========================================
+   PREMIUM LOGIN POLISH
+========================================= */
+
+.login-container {
+    position: relative;
+    isolation: isolate;
+}
+
+.login-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+
+    background:
+        radial-gradient(
+            circle at 8% 8%,
+            rgba(52, 160, 255, 0.08),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 92% 92%,
+            rgba(0, 220, 255, 0.06),
+            transparent 28%
+        );
+}
+
+
+/* BRAND POLISH */
+
+.brand-icon {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.brand-icon::after {
+    content: "";
+
+    position: absolute;
+    width: 70px;
+    height: 70px;
+
+    top: -45px;
+    left: -45px;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.brand:hover .brand-icon {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 0 35px rgba(0, 136, 255, 0.42);
+}
+
+
+/* HERO POLISH */
+
+.hero-content h1 {
+    text-shadow:
+        0 10px 35px rgba(0, 120, 255, 0.10);
+}
+
+.hero-content p {
+    color: #9eb8d2;
+}
+
+
+/* FEATURE PILLS */
+
+.feature-pill {
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.feature-pill:hover {
+    transform: translateY(-2px);
+
+    background: rgba(12, 58, 101, 0.62);
+
+    border-color: rgba(60, 170, 255, 0.36);
+}
+
+
+/* SECURITY */
+
+.security-info {
+    padding-top: 15px;
+}
+
+.security-info i {
+    filter:
+        drop-shadow(0 0 7px rgba(32, 214, 138, 0.45));
+}
+
+
+/* LOGIN PANEL */
+
+.login-right {
+    position: relative;
+}
+
+.login-right::before {
+    content: "";
+
+    position: absolute;
+
+    width: 280px;
+    height: 280px;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(31, 137, 255, 0.055),
+            transparent 68%
+        );
+
+    pointer-events: none;
+}
+
+.login-card {
+    position: relative;
+    z-index: 1;
+
+    padding: 28px;
+
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(7, 34, 63, 0.58),
+            rgba(2, 18, 37, 0.48)
+        );
+
+    border: 1px solid rgba(82, 174, 255, 0.14);
+
+    box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.20),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+
+/* LOGIN ICON */
+
+.login-icon {
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.login-card:hover .login-icon {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 0 40px rgba(0, 132, 255, 0.18);
+}
+
+
+/* TABS */
+
+.login-tabs {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.tab-btn {
+    position: relative;
+}
+
+.tab-btn:not(.active):hover {
+    color: #b8d5f0;
+
+    background: rgba(40, 120, 190, 0.10);
+}
+
+
+/* INPUT */
+
+.input-wrapper {
+    transition: transform 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+    transform: translateY(-1px);
+}
+
+.input-wrapper:focus-within .input-icon {
+    color: #43a8ff;
+
+    filter:
+        drop-shadow(0 0 6px rgba(67, 168, 255, 0.35));
+}
+
+.form-control {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.form-control:hover {
+    border-color: rgba(67, 160, 230, 0.48);
+}
+
+
+/* PASSWORD BUTTON */
+
+.password-toggle {
+    width: 32px;
+    height: 32px;
+
+    right: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.password-toggle:hover {
+    background: rgba(65, 155, 230, 0.10);
+}
+
+
+/* ERROR */
+
+.error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    box-shadow:
+        0 8px 25px rgba(255, 40, 75, 0.07);
+}
+
+
+/* LOGIN BUTTON */
+
+.submit-btn {
+    position: relative;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+
+    border: 1px solid rgba(108, 198, 255, 0.18);
+
+    background:
+        linear-gradient(
+            110deg,
+            #2496ff,
+            #1468ef,
+            #168fff
+        );
+
+    background-size: 200% 100%;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        background-position 0.45s ease;
+}
+
+.submit-btn::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -120%;
+
+    width: 70%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.18),
+            transparent
+        );
+
+    transform: skewX(-20deg);
+
+    transition: left 0.55s ease;
+}
+
+.submit-btn:hover {
+    background-position: 100% 0;
+
+    box-shadow:
+        0 14px 38px rgba(20, 103, 245, 0.42),
+        0 0 22px rgba(30, 145, 255, 0.10);
+}
+
+.submit-btn:hover::before {
+    left: 140%;
+}
+
+.submit-btn i {
+    transition: transform 0.2s ease;
+}
+
+.submit-btn:hover i {
+    transform: translateX(3px);
+}
+
+
+/* FOOTER */
+
+.login-footer {
+    padding-top: 2px;
+}
+
+.login-footer i {
+    filter:
+        drop-shadow(0 0 6px rgba(36, 217, 138, 0.35));
+}
+
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+    .login-card {
+        padding: 24px;
+    }
+
+}
+
+@media (max-width: 480px) {
+
+    .login-card {
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .login-tabs {
+        margin-bottom: 23px;
+    }
+
+}
+
     </style>
 </head>
+
 <body>
 
-    <div class="login-box">
-        <h2 style="text-align: center; margin-top: 0;">Portal Login</h2>
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
 
-        <!-- Login Type Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('admin')">Admin Login</button>
-            <button class="tab-btn" onclick="switchTab('student')">Student Login</button>
+    <div class="login-wrapper">
+
+        <div class="login-container">
+
+            <!-- LEFT SIDE -->
+
+            <section class="login-left">
+
+                <div>
+
+                    <div class="brand">
+
+                        <div class="brand-icon">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+
+                        <div class="brand-text">
+                            <h2>AuthFace</h2>
+                            <span>Smart Attendance System</span>
+                        </div>
+
+                    </div>
+
+                    <div class="hero-content">
+
+                        <h1>
+                            Smart
+                            <span class="gradient-text">
+                                Attendance.
+                            </span>
+                        </h1>
+
+                        <p>
+                            Manage students, track attendance and
+                            access intelligent attendance insights
+                            from one centralized platform.
+                        </p>
+
+                        <div class="feature-list">
+
+                            <div class="feature-pill">
+                                <i class="fa-solid fa-face-smile"></i>
+                                Face Recognition
+                            </div>
+
+                            <div class="feature-pill">
+                                <i class="fa-solid fa-chart-line"></i>
+                                Smart Analytics
+                            </div>
+
+                            <div class="feature-pill">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                Secure Access
+                            </div>
+
+                            <div class="feature-pill">
+                                <i class="fa-solid fa-bolt"></i>
+                                Real-time Tracking
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="security-info">
+
+                    <i class="fa-solid fa-circle-check"></i>
+
+                    <span>
+                        Secure authentication · Authorized access only
+                    </span>
+
+                </div>
+
+            </section>
+
+            <!-- RIGHT SIDE -->
+
+            <section class="login-right">
+
+                <div class="login-card">
+
+                    <div class="login-header">
+
+                        <div class="login-icon">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+
+                        <h2>Welcome Back!</h2>
+
+                        <p>
+                            Login to access your account
+                        </p>
+
+                    </div>
+
+                    <div class="login-tabs">
+
+                        <button
+                            type="button"
+                            class="tab-btn active"
+                            onclick="switchTab('admin')">
+
+                            Admin Login
+
+                        </button>
+
+                        <button
+                            type="button"
+                            class="tab-btn"
+                            onclick="switchTab('student')">
+
+                            Student Login
+
+                        </button>
+
+                    </div>
+
+                    <!-- ADMIN -->
+
+                    <div
+                        id="admin-section"
+                        class="form-section active">
+
+                        {% if admin_error %}
+
+                        <div class="error">
+
+                            <i class="fa-solid fa-circle-exclamation"></i>
+
+                            {{ admin_error }}
+
+                        </div>
+
+                        {% endif %}
+
+                        <form
+                            action="{{ url_for('admin_login') }}"
+                            method="POST">
+
+                            <div class="form-group">
+
+                                <label for="admin-username">
+                                    Admin Username
+                                </label>
+
+                                <div class="input-wrapper">
+
+                                    <i class="fa-solid fa-user input-icon"></i>
+
+                                    <input
+                                        type="text"
+                                        id="admin-username"
+                                        name="username"
+                                        class="form-control"
+                                        placeholder="Enter admin username"
+                                        autocomplete="username"
+                                        required>
+
+                                </div>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="admin-password">
+                                    Password
+                                </label>
+
+                                <div class="input-wrapper">
+
+                                    <i class="fa-solid fa-lock input-icon"></i>
+
+                                    <input
+                                        type="password"
+                                        id="admin-password"
+                                        name="password"
+                                        class="form-control"
+                                        placeholder="Enter your password"
+                                        autocomplete="current-password"
+                                        required>
+
+                                    <button
+                                        type="button"
+                                        class="password-toggle"
+                                        onclick="togglePassword('admin-password', this)">
+
+                                        <i class="fa-solid fa-eye"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="submit-btn">
+
+                                Login as Admin
+
+                                <i class="fa-solid fa-arrow-right"></i>
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    <!-- STUDENT -->
+
+                    <div
+                        id="student-section"
+                        class="form-section">
+
+                        {% if student_error %}
+
+                        <div class="error">
+
+                            <i class="fa-solid fa-circle-exclamation"></i>
+
+                            {{ student_error }}
+
+                        </div>
+
+                        {% endif %}
+
+                        <form
+                            action="{{ url_for('student_login') }}"
+                            method="POST">
+
+                            <div class="form-group">
+
+                                <label for="student-roll">
+                                    Student Roll No
+                                </label>
+
+                                <div class="input-wrapper">
+
+                                    <i class="fa-solid fa-id-card input-icon"></i>
+
+                                    <input
+                                        type="text"
+                                        id="student-roll"
+                                        name="student_id"
+                                        class="form-control"
+                                        placeholder="Enter your roll number"
+                                        autocomplete="username"
+                                        required>
+
+                                </div>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label for="student-password">
+                                    Password / PIN
+                                </label>
+
+                                <div class="input-wrapper">
+
+                                    <i class="fa-solid fa-lock input-icon"></i>
+
+                                    <input
+                                        type="password"
+                                        id="student-password"
+                                        name="password"
+                                        class="form-control"
+                                        placeholder="Enter your password"
+                                        autocomplete="current-password"
+                                        required>
+
+                                    <button
+                                        type="button"
+                                        class="password-toggle"
+                                        onclick="togglePassword('student-password', this)">
+
+                                        <i class="fa-solid fa-eye"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="submit-btn">
+
+                                Login as Student
+
+                                <i class="fa-solid fa-arrow-right"></i>
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    <div class="login-footer">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                        Only authorized users can access the
+                        Smart Attendance System.
+
+                    </div>
+
+                </div>
+
+            </section>
+
         </div>
 
-        <!-- Admin Login Form -->
-        <div id="admin-section" class="form-section active">
-            {% if admin_error %}
-                <div class="error">{{ admin_error }}</div>
-            {% endif %}
-            <form action="{{ url_for('admin_login') }}" method="POST">
-                <div class="form-group">
-                    <label for="admin-username">Admin Username</label>
-                    <input type="text" id="admin-username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="admin-password">Password</label>
-                    <input type="password" id="admin-password" name="password" required>
-                </div>
-                <button type="submit" class="submit-btn">Login as Admin</button>
-            </form>
-        </div>
-
-        <!-- Student Login Form -->
-        <div id="student-section" class="form-section">
-            {% if student_error %}
-                <div class="error">{{ student_error }}</div>
-            {% endif %}
-            <form action="{{ url_for('student_login') }}" method="POST">
-                <div class="form-group">
-                    <label for="student-id">Student ID / Roll No</label>
-                    <input type="text" id="student-id" name="student_id" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-pass">Password / Pin</label>
-                    <input type="password" id="student-pass" name="password">
-                </div>
-                <button type="submit" class="submit-btn" style="background: #28a745;">Login as Student</button>
-            </form>
-        </div>
     </div>
 
     <script>
-        function switchTab(role) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
 
-            if (role === 'admin') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('admin-section').classList.add('active');
+        function switchTab(role) {
+
+            document
+                .querySelectorAll(".tab-btn")
+                .forEach(btn =>
+                    btn.classList.remove("active")
+                );
+
+            document
+                .querySelectorAll(".form-section")
+                .forEach(section =>
+                    section.classList.remove("active")
+                );
+
+            if (role === "admin") {
+
+                document
+                    .querySelectorAll(".tab-btn")[0]
+                    .classList.add("active");
+
+                document
+                    .getElementById("admin-section")
+                    .classList.add("active");
+
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('student-section').classList.add('active');
+
+                document
+                    .querySelectorAll(".tab-btn")[1]
+                    .classList.add("active");
+
+                document
+                    .getElementById("student-section")
+                    .classList.add("active");
             }
         }
+
+        function togglePassword(inputId, button) {
+
+            const input =
+                document.getElementById(inputId);
+
+            const icon =
+                button.querySelector("i");
+
+            if (input.type === "password") {
+
+                input.type = "text";
+
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+
+            } else {
+
+                input.type = "password";
+
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
     </script>
 
 </body>
 </html>
+

@@ -1,341 +1,2070 @@
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Student Login | Smart Attendance System</title>
+```
+<title>Student Dashboard - Smart Attendance</title>
 
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+>
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='styles.css') }}"
-    >
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='styles.css') }}"
+>
 
-    <style>
-        body {
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0b1120;
-            font-family: Arial, sans-serif;
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    :root {
+        --student-bg: #020b16;
+        --student-panel: rgba(8, 27, 47, 0.92);
+        --student-panel-2: rgba(7, 22, 39, 0.96);
+        --student-border: rgba(75, 157, 220, 0.16);
+        --student-border-hover: rgba(74, 169, 255, 0.34);
+        --student-text: #f4f8fc;
+        --student-muted: #7898b5;
+        --student-blue: #3ca9ff;
+        --student-blue-dark: #1266d1;
+        --student-green: #25d9a4;
+        --student-red: #ff6f7d;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        color: var(--student-text);
+        background:
+            radial-gradient(circle at 8% 0%, rgba(27, 121, 209, 0.14), transparent 28%),
+            radial-gradient(circle at 92% 12%, rgba(22, 100, 190, 0.10), transparent 25%),
+            linear-gradient(145deg, #020b16 0%, #031426 48%, #020914 100%);
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(
+                rgba(255,255,255,0.012) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                90deg,
+                rgba(255,255,255,0.012) 1px,
+                transparent 1px
+            );
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, black, transparent 80%);
+    }
+
+    .student-dashboard {
+        min-height: 100vh;
+        position: relative;
+    }
+
+    /* ==========================================
+       HEADER
+    ========================================== */
+
+    .student-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+
+        width: 100%;
+        padding: 16px 42px;
+
+        background: rgba(2, 14, 27, 0.84);
+        border-bottom: 1px solid rgba(67, 151, 213, 0.13);
+
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .student-brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .brand-mark {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 13px;
+
+        color: #d7edff;
+        background: linear-gradient(145deg, #1d85f1, #104eaa);
+        border: 1px solid rgba(118, 201, 255, 0.25);
+
+        box-shadow:
+            0 10px 25px rgba(13, 91, 186, 0.25),
+            inset 0 1px 0 rgba(255,255,255,0.13);
+    }
+
+    .brand-mark i {
+        font-size: 17px;
+        filter: drop-shadow(0 0 7px rgba(200, 232, 255, 0.3));
+    }
+
+    .brand-copy {
+        min-width: 0;
+    }
+
+    .brand-copy strong {
+        display: block;
+        margin: 0;
+
+        color: #f7fbff;
+        font-size: 14px;
+        font-weight: 750;
+        letter-spacing: -0.15px;
+    }
+
+    .brand-copy span {
+        display: block;
+        margin-top: 2px;
+
+        color: #6386a5;
+        font-size: 10px;
+        letter-spacing: 0.3px;
+    }
+
+    .student-header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-student {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .student-avatar {
+        width: 43px;
+        height: 43px;
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        overflow: hidden;
+        border-radius: 13px;
+
+        color: #a9d8ff;
+        background: linear-gradient(
+            145deg,
+            rgba(31, 119, 218, 0.28),
+            rgba(12, 51, 91, 0.8)
+        );
+
+        border: 1px solid rgba(72, 162, 232, 0.22);
+    }
+
+    .student-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .header-student-info {
+        min-width: 0;
+    }
+
+    .header-student-info strong {
+        display: block;
+        max-width: 180px;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        color: #edf6ff;
+        font-size: 12px;
+    }
+
+    .header-student-info span {
+        display: block;
+        margin-top: 3px;
+
+        color: #6487a6;
+        font-size: 10px;
+    }
+
+    .logout-btn {
+        height: 40px;
+        padding: 0 14px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        color: #b6cde2;
+        text-decoration: none;
+
+        border: 1px solid rgba(255, 105, 120, 0.15);
+        border-radius: 11px;
+
+        background: rgba(90, 19, 32, 0.24);
+
+        font-size: 11px;
+        font-weight: 700;
+
+        transition:
+            transform 0.2s ease,
+            background 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease;
+    }
+
+    .logout-btn:hover {
+        transform: translateY(-1px);
+        color: #ffabb4;
+        background: rgba(116, 25, 42, 0.38);
+        border-color: rgba(255, 105, 120, 0.28);
+    }
+
+    /* ==========================================
+       MAIN
+    ========================================== */
+
+    .student-container {
+        width: 100%;
+        max-width: 1440px;
+
+        margin: 0 auto;
+        padding: 30px 42px 45px;
+    }
+
+    /* ==========================================
+       WELCOME
+    ========================================== */
+
+    .student-welcome {
+        position: relative;
+        overflow: hidden;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 25px;
+
+        padding: 25px 28px;
+        margin-bottom: 18px;
+
+        border: 1px solid var(--student-border);
+        border-radius: 20px;
+
+        background:
+            radial-gradient(
+                circle at 92% 15%,
+                rgba(48, 157, 255, 0.12),
+                transparent 30%
+            ),
+            linear-gradient(
+                135deg,
+                rgba(9, 43, 75, 0.94),
+                rgba(4, 23, 42, 0.96)
+            );
+
+        box-shadow:
+            0 16px 40px rgba(0,0,0,0.22),
+            inset 0 1px 0 rgba(255,255,255,0.025);
+    }
+
+    .student-welcome::before {
+        content: "";
+        position: absolute;
+
+        width: 260px;
+        height: 260px;
+
+        right: -110px;
+        top: -150px;
+
+        border-radius: 50%;
+
+        background: radial-gradient(
+            circle,
+            rgba(55, 168, 255, 0.13),
+            transparent 68%
+        );
+
+        pointer-events: none;
+    }
+
+    .student-welcome::after {
+        content: "";
+
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+
+        width: 3px;
+
+        background: linear-gradient(
+            180deg,
+            #42b0ff,
+            #176dd5
+        );
+
+        box-shadow: 0 0 15px rgba(48, 157, 255, 0.45);
+    }
+
+    .welcome-copy {
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+    }
+
+    .welcome-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        margin-bottom: 8px;
+
+        color: #62baff;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+
+    .welcome-kicker i {
+        font-size: 9px;
+        filter: drop-shadow(0 0 6px rgba(67, 179, 255, 0.5));
+    }
+
+    .welcome-copy h1 {
+        margin: 0;
+
+        color: #f7fbff;
+        font-size: clamp(24px, 3vw, 34px);
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .welcome-copy p {
+        margin: 8px 0 0;
+
+        color: #7899b6;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .welcome-date {
+        position: relative;
+        z-index: 1;
+
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        padding: 10px 13px;
+
+        color: #9fc8e9;
+
+        border: 1px solid rgba(67, 159, 224, 0.16);
+        border-radius: 12px;
+
+        background: rgba(4, 23, 42, 0.54);
+
+        font-size: 10px;
+        font-weight: 650;
+    }
+
+    .welcome-date i {
+        color: #48aaff;
+    }
+
+    /* ==========================================
+       STATS
+    ========================================== */
+
+    .student-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+
+        margin-bottom: 18px;
+    }
+
+    .student-stat {
+        position: relative;
+        overflow: hidden;
+
+        min-width: 0;
+        padding: 19px;
+
+        display: flex;
+        align-items: center;
+        gap: 14px;
+
+        border: 1px solid var(--student-border);
+        border-radius: 17px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(9, 32, 55, 0.94),
+                rgba(4, 20, 36, 0.97)
+            );
+
+        box-shadow: 0 12px 30px rgba(0,0,0,0.16);
+
+        transition:
+            transform 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease;
+    }
+
+    .student-stat::before {
+        content: "";
+
+        position: absolute;
+        width: 100px;
+        height: 100px;
+
+        right: -45px;
+        top: -55px;
+
+        border-radius: 50%;
+
+        background: radial-gradient(
+            circle,
+            rgba(49, 155, 245, 0.10),
+            transparent 70%
+        );
+    }
+
+    .student-stat:hover {
+        transform: translateY(-3px);
+        border-color: var(--student-border-hover);
+
+        box-shadow:
+            0 17px 36px rgba(0,0,0,0.24),
+            0 0 25px rgba(35, 145, 230, 0.04);
+    }
+
+    .stat-icon {
+        position: relative;
+        z-index: 1;
+
+        width: 46px;
+        height: 46px;
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 13px;
+
+        color: #bce3ff;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(31, 129, 237, 0.9),
+                rgba(15, 82, 169, 0.92)
+            );
+
+        border: 1px solid rgba(103, 193, 255, 0.18);
+
+        box-shadow:
+            0 9px 20px rgba(13, 89, 183, 0.20),
+            inset 0 1px 0 rgba(255,255,255,0.09);
+    }
+
+    .stat-icon i {
+        font-size: 17px;
+    }
+
+    .student-stat.present .stat-icon {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(18, 166, 129, 0.92),
+                rgba(9, 105, 86, 0.95)
+            );
+        border-color: rgba(54, 221, 174, 0.17);
+    }
+
+    .student-stat.absent .stat-icon {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(181, 57, 77, 0.92),
+                rgba(110, 30, 47, 0.95)
+            );
+        border-color: rgba(255, 102, 125, 0.17);
+    }
+
+    .student-stat.attendance .stat-icon {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(119, 73, 214, 0.92),
+                rgba(75, 45, 143, 0.95)
+            );
+        border-color: rgba(172, 125, 255, 0.17);
+    }
+
+    .stat-copy {
+        min-width: 0;
+    }
+
+    .stat-copy span {
+        display: block;
+
+        margin-bottom: 5px;
+
+        color: #7192af;
+        font-size: 10px;
+        font-weight: 650;
+        letter-spacing: 0.2px;
+    }
+
+    .stat-copy strong {
+        display: block;
+
+        color: #f2f8fd;
+        font-size: 23px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    /* ==========================================
+       SECTION CARD
+    ========================================== */
+
+    .student-card {
+        position: relative;
+        overflow: hidden;
+
+        border: 1px solid var(--student-border);
+        border-radius: 19px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(7, 29, 50, 0.94),
+                rgba(3, 18, 33, 0.97)
+            );
+
+        box-shadow: 0 15px 38px rgba(0,0,0,0.18);
+    }
+
+    .student-card::before {
+        content: "";
+
+        position: absolute;
+
+        width: 220px;
+        height: 220px;
+
+        right: -120px;
+        top: -130px;
+
+        border-radius: 50%;
+
+        background: radial-gradient(
+            circle,
+            rgba(43, 157, 255, 0.08),
+            transparent 70%
+        );
+
+        pointer-events: none;
+    }
+
+    .card-header {
+        position: relative;
+        z-index: 1;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+
+        padding: 19px 21px;
+
+        border-bottom: 1px solid rgba(72, 151, 207, 0.10);
+    }
+
+    .card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .card-title-icon {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 10px;
+
+        color: #8fcaff;
+        background: rgba(31, 127, 220, 0.12);
+        border: 1px solid rgba(65, 158, 229, 0.13);
+    }
+
+    .card-title-icon i {
+        font-size: 13px;
+    }
+
+    .card-title-text h2 {
+        margin: 0;
+
+        color: #f0f7fd;
+        font-size: 14px;
+        font-weight: 750;
+        letter-spacing: -0.1px;
+    }
+
+    .card-title-text p {
+        margin: 3px 0 0;
+
+        color: #6385a2;
+        font-size: 9px;
+    }
+
+    .live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        padding: 6px 9px;
+
+        color: #70e6c0;
+
+        border: 1px solid rgba(37, 217, 164, 0.14);
+        border-radius: 999px;
+
+        background: rgba(26, 143, 112, 0.09);
+
+        font-size: 9px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .live-dot {
+        width: 5px;
+        height: 5px;
+
+        border-radius: 50%;
+        background: #25d9a4;
+
+        box-shadow: 0 0 8px rgba(37, 217, 164, 0.75);
+
+        animation: livePulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
         }
 
-        .student-login-wrapper {
+        50% {
+            opacity: 0.45;
+            transform: scale(0.75);
+        }
+    }
+
+    /* ==========================================
+       CHART
+    ========================================== */
+
+    .chart-card {
+        margin-bottom: 18px;
+    }
+
+    .chart-body {
+        position: relative;
+        height: 265px;
+        padding: 18px 20px 15px;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    #attendanceChart {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .chart-center {
+        position: absolute;
+
+        left: 50%;
+        top: 50%;
+
+        transform: translate(-50%, -50%);
+
+        text-align: center;
+
+        pointer-events: none;
+    }
+
+    .chart-center strong {
+        display: block;
+
+        color: #f5fbff;
+        font-size: 27px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.8px;
+    }
+
+    .chart-center span {
+        display: block;
+
+        margin-top: 5px;
+
+        color: #6789a7;
+        font-size: 9px;
+        font-weight: 650;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    .chart-legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+
+        padding: 0 20px 18px;
+    }
+
+    .chart-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        color: #7596b1;
+        font-size: 9px;
+        font-weight: 650;
+    }
+
+    .legend-dot {
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+    }
+
+    .legend-present {
+        background: #25d9a4;
+        box-shadow: 0 0 8px rgba(37, 217, 164, 0.45);
+    }
+
+    .legend-absent {
+        background: #ff6578;
+        box-shadow: 0 0 8px rgba(255, 101, 120, 0.35);
+    }
+
+    /* ==========================================
+       PROFILE + ATTENDANCE
+    ========================================== */
+
+    .student-main-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    /* ==========================================
+       PROFILE
+    ========================================== */
+
+    .profile-body {
+        padding: 24px 21px 21px;
+    }
+
+    .profile-top {
+        text-align: center;
+    }
+
+    .profile-photo-wrap {
+        position: relative;
+
+        width: 112px;
+        height: 112px;
+
+        margin: 0 auto 15px;
+    }
+
+    .profile-photo {
+        width: 112px;
+        height: 112px;
+
+        object-fit: cover;
+        display: block;
+
+        border-radius: 50%;
+
+        border: 3px solid rgba(55, 166, 247, 0.78);
+
+        box-shadow:
+            0 0 0 5px rgba(37, 137, 220, 0.07),
+            0 14px 30px rgba(0,0,0,0.28);
+    }
+
+    .photo-fallback {
+        width: 112px;
+        height: 112px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        color: #80c9ff;
+
+        background:
+            radial-gradient(
+                circle at 35% 25%,
+                rgba(68, 174, 255, 0.22),
+                transparent 50%
+            ),
+            linear-gradient(145deg, #0e3961, #071f38);
+
+        border: 3px solid rgba(55, 166, 247, 0.78);
+
+        box-shadow:
+            0 0 0 5px rgba(37, 137, 220, 0.07),
+            0 14px 30px rgba(0,0,0,0.28);
+    }
+
+    .photo-fallback i {
+        font-size: 37px;
+    }
+
+    .profile-top h2 {
+        margin: 0;
+
+        color: #f4f9fd;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+    }
+
+    .roll-number {
+        margin: 5px 0 0;
+
+        color: #4db0ff;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .profile-email {
+        margin: 5px auto 0;
+
+        max-width: 260px;
+
+        overflow-wrap: anywhere;
+
+        color: #6688a5;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    .profile-details {
+        margin-top: 20px;
+        padding-top: 16px;
+
+        border-top: 1px solid rgba(71, 148, 202, 0.10);
+    }
+
+    .profile-detail {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        padding: 8px 0;
+    }
+
+    .profile-detail i {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 8px;
+
+        color: #78bdf0;
+        background: rgba(37, 126, 216, 0.08);
+    }
+
+    .profile-detail span {
+        min-width: 0;
+
+        color: #b1c8dc;
+        font-size: 10px;
+    }
+
+    /* ==========================================
+       PROGRESS
+    ========================================== */
+
+    .attendance-progress {
+        margin-top: 17px;
+        padding: 14px;
+
+        border-radius: 12px;
+
+        background: rgba(4, 22, 39, 0.68);
+        border: 1px solid rgba(72, 151, 207, 0.09);
+    }
+
+    .progress-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        margin-bottom: 9px;
+    }
+
+    .progress-header span:first-child {
+        color: #7696b1;
+        font-size: 9px;
+        font-weight: 650;
+    }
+
+    .progress-header span:last-child {
+        color: #53b7ff;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 7px;
+
+        overflow: hidden;
+
+        border-radius: 999px;
+
+        background: rgba(56, 91, 120, 0.22);
+    }
+
+    .progress-fill {
+        width: 0;
+        height: 100%;
+
+        border-radius: inherit;
+
+        background:
+            linear-gradient(
+                90deg,
+                #176dd6,
+                #4db7ff
+            );
+
+        box-shadow: 0 0 12px rgba(51, 164, 255, 0.35);
+
+        transition: width 0.65s ease;
+    }
+
+    /* ==========================================
+       ATTENDANCE TABLE
+    ========================================== */
+
+    .attendance-card {
+        min-width: 0;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .attendance-table {
+        width: 100%;
+        min-width: 540px;
+
+        border-collapse: collapse;
+    }
+
+    .attendance-table th {
+        padding: 13px 20px;
+
+        text-align: left;
+
+        color: #688aa7;
+        background: rgba(3, 18, 33, 0.42);
+
+        font-size: 9px;
+        font-weight: 750;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+
+        border-bottom: 1px solid rgba(71, 148, 202, 0.10);
+    }
+
+    .attendance-table td {
+        padding: 14px 20px;
+
+        color: #aec5d9;
+
+        font-size: 10px;
+
+        border-bottom: 1px solid rgba(71, 148, 202, 0.075);
+    }
+
+    .attendance-table tbody tr {
+        transition: background 0.2s ease;
+    }
+
+    .attendance-table tbody tr:hover {
+        background: rgba(35, 125, 207, 0.045);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+
+        min-width: 68px;
+        padding: 5px 8px;
+
+        border-radius: 999px;
+
+        font-size: 8px;
+        font-weight: 800;
+    }
+
+    .status-present {
+        color: #62e5bd;
+        background: rgba(30, 174, 135, 0.09);
+        border: 1px solid rgba(37, 217, 164, 0.13);
+    }
+
+    .status-absent {
+        color: #ff8795;
+        background: rgba(206, 54, 76, 0.09);
+        border: 1px solid rgba(255, 101, 120, 0.12);
+    }
+
+    .no-records {
+        text-align: center !important;
+        padding: 40px 20px !important;
+        color: #5e7c96 !important;
+    }
+
+    .no-records i {
+        color: #41647e;
+    }
+
+    /* ==========================================
+       FOOTER
+    ========================================== */
+
+    .dashboard-footer {
+        padding: 28px 20px 34px;
+
+        text-align: center;
+
+        color: #48667f;
+        font-size: 9px;
+        letter-spacing: 0.2px;
+    }
+
+    .footer-dot {
+        display: inline-block;
+
+        width: 4px;
+        height: 4px;
+
+        margin: 0 5px;
+
+        vertical-align: middle;
+
+        border-radius: 50%;
+        background: #28668e;
+    }
+
+    /* ==========================================
+       RESPONSIVE
+    ========================================== */
+
+    @media (max-width: 1050px) {
+        .student-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .student-main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-card {
+            max-width: none;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .student-header {
+            padding: 13px 18px;
+        }
+
+        .student-container {
+            padding: 20px 16px 35px;
+        }
+
+        .header-student-info {
+            display: none;
+        }
+
+        .student-welcome {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 22px 20px;
+        }
+
+        .welcome-date {
             width: 100%;
-            max-width: 420px;
-            padding: 20px;
-            box-sizing: border-box;
         }
 
-        .student-login-card {
-            background: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 18px;
-            padding: 35px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+        .student-stats {
+            grid-template-columns: 1fr;
         }
 
-        .student-login-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .chart-body {
+            height: 245px;
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
-        .student-login-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 18px;
-            border-radius: 50%;
-            background: #172554;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #60a5fa;
-            font-size: 30px;
+        .card-header {
+            padding: 17px;
         }
 
-        .student-login-header h1 {
-            margin: 0;
-            color: #f9fafb;
+        .profile-body {
+            padding: 22px 17px 18px;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .student-brand .brand-copy span {
+            display: none;
+        }
+
+        .brand-mark {
+            width: 39px;
+            height: 39px;
+        }
+
+        .logout-btn {
+            width: 40px;
+            padding: 0;
+        }
+
+        .logout-btn span {
+            display: none;
+        }
+
+        .welcome-copy h1 {
             font-size: 25px;
         }
 
-        .student-login-header p {
-            margin-top: 8px;
-            color: #9ca3af;
-            font-size: 14px;
+        .welcome-copy p {
+            font-size: 10px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .welcome-date {
+            font-size: 9px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #d1d5db;
-            font-size: 14px;
-            font-weight: 600;
+        .student-stat {
+            padding: 16px;
         }
 
-        .input-wrapper {
-            position: relative;
+        .stat-copy strong {
+            font-size: 21px;
         }
 
-        .input-wrapper > i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
+        .chart-body {
+            height: 225px;
         }
 
-        .input-wrapper input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 13px 42px;
-            background: #0f172a;
-            border: 1px solid #374151;
-            border-radius: 10px;
-            color: #f9fafb;
-            font-size: 14px;
-            outline: none;
-            transition: 0.2s;
+        .chart-center strong {
+            font-size: 24px;
         }
 
-        .input-wrapper input::placeholder {
-            color: #6b7280;
+        .chart-legend {
+            gap: 15px;
         }
+    }
+</style>
+```
 
-        .input-wrapper input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 13px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: none;
-            color: #6b7280;
-            cursor: pointer;
-            font-size: 15px;
-        }
-
-        .password-toggle:hover {
-            color: #60a5fa;
-        }
-
-        .student-login-btn {
-            width: 100%;
-            padding: 13px;
-            border: none;
-            border-radius: 10px;
-            background: #2563eb;
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .student-login-btn:hover {
-            background: #1d4ed8;
-            transform: translateY(-1px);
-        }
-
-        .admin-login-link {
-            display: block;
-            margin-top: 22px;
-            text-align: center;
-            color: #9ca3af;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .admin-login-link:hover {
-            color: #60a5fa;
-        }
-
-        .admin-login-link i {
-            margin-right: 5px;
-        }
-
-        .login-footer {
-            margin-top: 25px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 12px;
-        }
-
-        .error-message {
-            margin-bottom: 18px;
-            padding: 10px;
-            border-radius: 8px;
-            background: #450a0a;
-            border: 1px solid #7f1d1d;
-            color: #fca5a5;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        @media (max-width: 480px) {
-            .student-login-card {
-                padding: 25px 20px;
-            }
-        }
-    </style>
 </head>
 
 <body>
 
-<div class="student-login-wrapper">
+<div class="student-dashboard">
 
-    <div class="student-login-card">
+```
+<!-- ==========================================
+     NORMALIZE PHOTO PATH
+========================================== -->
 
-        <div class="student-login-header">
+{% set photo_path = student.photo_path | default('', true) | replace('\\', '/') %}
 
-            <div class="student-login-icon">
-                <i class="fa-solid fa-user-graduate"></i>
-            </div>
+{% if photo_path.startswith('/') %}
+    {% set photo_path = photo_path[1:] %}
+{% endif %}
 
-            <h1>Student Portal</h1>
+{% if photo_path.startswith('static/') %}
+    {% set photo_path = photo_path[7:] %}
+{% endif %}
 
-            <p>Sign in to view your attendance</p>
 
+<!-- ==========================================
+     HEADER
+========================================== -->
+
+<header class="student-header">
+
+    <div class="student-brand">
+
+        <div class="brand-mark">
+            <i class="fa-solid fa-shield-halved"></i>
         </div>
 
-        {% if student_error %}
-        <div class="error-message">
-            {{ student_error }}
-        </div>
-        {% endif %}
-
-
-        <!-- STUDENT LOGIN FORM -->
-        <form method="POST" action="{{ url_for('student_login') }}">
-
-            <div class="form-group">
-
-                <label for="student_id">
-                    Student ID
-                </label>
-
-                <div class="input-wrapper">
-
-                    <i class="fa-solid fa-id-card"></i>
-
-                    <input
-                        type="text"
-                        name="student_id"
-                        id="student_id"
-                        placeholder="Enter your Student ID"
-                        required
-                    >
-
-                </div>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label for="password">
-                    Password
-                </label>
-
-                <div class="input-wrapper">
-
-                    <i class="fa-solid fa-lock"></i>
-
-                    <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        placeholder="Enter your password"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        class="password-toggle"
-                        onclick="togglePassword()"
-                        aria-label="Show or hide password"
-                    >
-                        <i
-                            class="fa-solid fa-eye"
-                            id="passwordIcon"
-                        ></i>
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <button
-                type="submit"
-                class="student-login-btn"
-            >
-                <i class="fa-solid fa-right-to-bracket"></i>
-                Login as Student
-            </button>
-
-        </form>
-
-
-        <!-- GO TO MAIN LOGIN -->
-        <a
-            href="{{ url_for('login_page') }}"
-            class="admin-login-link"
-        >
-            <i class="fa-solid fa-user-shield"></i>
-            Go to Admin Login
-        </a>
-
-
-        <div class="login-footer">
-            Smart Attendance System
+        <div class="brand-copy">
+            <strong>Smart Attendance</strong>
+            <span>Student Portal</span>
         </div>
 
     </div>
 
+
+    <div class="student-header-right">
+
+        <div class="header-student">
+
+            <div class="student-avatar">
+
+                {% if photo_path %}
+
+                    <img
+                        src="{{ url_for('static', filename=photo_path) }}"
+                        alt="Student Photo"
+                        onerror="
+                            this.style.display='none';
+                            this.nextElementSibling.style.display='block';
+                        "
+                    >
+
+                    <i
+                        class="fa-solid fa-user"
+                        style="display:none;"
+                    ></i>
+
+                {% else %}
+
+                    <i class="fa-solid fa-user"></i>
+
+                {% endif %}
+
+            </div>
+
+            <div class="header-student-info">
+
+                <strong>
+                    {{ student.name | default('Student') }}
+                </strong>
+
+                <span>
+                    Roll No:
+                    {{ student.roll_no | default(student.id | default('N/A')) }}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('logout') }}"
+            class="logout-btn"
+            title="Logout"
+        >
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- ==========================================
+     MAIN
+========================================== -->
+
+<main class="student-container">
+
+
+    <!-- ==========================================
+         WELCOME
+    ========================================== -->
+
+    <section class="student-welcome">
+
+        <div class="welcome-copy">
+
+            <div class="welcome-kicker">
+                <i class="fa-solid fa-sparkles"></i>
+                Student Dashboard
+            </div>
+
+            <h1>
+                Welcome,
+                {{ student.name | default('Student') }} 👋
+            </h1>
+
+            <p>
+                Track your attendance, profile and academic activity
+                from one place.
+            </p>
+
+        </div>
+
+        <div class="welcome-date">
+            <i class="fa-regular fa-calendar"></i>
+            <span id="studentDashboardDate">Loading date...</span>
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         STATS
+    ========================================== -->
+
+    <section class="student-stats">
+
+
+        <div class="student-stat">
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+
+            <div class="stat-copy">
+                <span>Total Days</span>
+                <strong>
+                    {{ total_days | default(0) }}
+                </strong>
+            </div>
+
+        </div>
+
+
+        <div class="student-stat present">
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="stat-copy">
+                <span>Present</span>
+                <strong>
+                    {{ present_days | default(0) }}
+                </strong>
+            </div>
+
+        </div>
+
+
+        <div class="student-stat absent">
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+
+            <div class="stat-copy">
+                <span>Absent</span>
+                <strong>
+                    {{ absent_days | default(0) }}
+                </strong>
+            </div>
+
+        </div>
+
+
+        <div class="student-stat attendance">
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+
+            <div class="stat-copy">
+                <span>Attendance</span>
+                <strong>
+                    {{ percentage | default(0) }}%
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         ATTENDANCE OVERVIEW
+    ========================================== -->
+
+    <section class="student-card chart-card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+
+                <div class="card-title-icon">
+                    <i class="fa-solid fa-chart-column"></i>
+                </div>
+
+                <div class="card-title-text">
+
+                    <h2>Attendance Overview</h2>
+
+                    <p>Your attendance distribution</p>
+
+                </div>
+
+            </div>
+
+            <span class="live-badge">
+                <span class="live-dot"></span>
+                Updated
+            </span>
+
+        </div>
+
+
+        <div
+            id="attendanceChartData"
+            data-present="{{ present_days | default(0) }}"
+            data-absent="{{ absent_days | default(0) }}"
+            style="display:none;"
+        ></div>
+
+
+        <div class="chart-body">
+
+            <div class="chart-container">
+
+                <canvas id="attendanceChart"></canvas>
+
+                <div class="chart-center">
+
+                    <strong>
+                        {{ percentage | default(0) }}%
+                    </strong>
+
+                    <span>Attendance</span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="chart-legend">
+
+            <span class="chart-legend-item">
+                <span class="legend-dot legend-present"></span>
+                Present
+            </span>
+
+            <span class="chart-legend-item">
+                <span class="legend-dot legend-absent"></span>
+                Absent
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         PROFILE + HISTORY
+    ========================================== -->
+
+    <div class="student-main-grid">
+
+
+        <!-- ==========================================
+             PROFILE
+        ========================================== -->
+
+        <section class="student-card profile-card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+
+                    <div class="card-title-text">
+
+                        <h2>My Profile</h2>
+
+                        <p>Student information</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="profile-body">
+
+                <div class="profile-top">
+
+                    <div class="profile-photo-wrap">
+
+                        {% if photo_path %}
+
+                            <img
+                                id="profilePhoto"
+                                class="profile-photo"
+                                src="{{ url_for('static', filename=photo_path) }}"
+                                alt="Student Photo"
+                                onerror="
+                                    this.style.display='none';
+                                    document.getElementById('photoFallback').style.display='flex';
+                                "
+                            >
+
+                            <div
+                                id="photoFallback"
+                                class="photo-fallback"
+                                style="display:none;"
+                            >
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+
+                        {% else %}
+
+                            <div
+                                id="photoFallback"
+                                class="photo-fallback"
+                            >
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <h2>
+                        {{ student.name | default('Student') }}
+                    </h2>
+
+
+                    <p class="roll-number">
+
+                        Roll No:
+                        {{ student.roll_no | default(student.id | default('N/A')) }}
+
+                    </p>
+
+
+                    <p class="profile-email">
+
+                        {{ student.email | default('No email available') }}
+
+                    </p>
+
+                </div>
+
+
+                <div class="profile-details">
+
+                    <div class="profile-detail">
+
+                        <i class="fa-solid fa-id-card"></i>
+
+                        <span>
+                            ID:
+                            {{ student.id | default('N/A') }}
+                        </span>
+
+                    </div>
+
+
+                    {% if student.department is defined %}
+
+                    <div class="profile-detail">
+
+                        <i class="fa-solid fa-building"></i>
+
+                        <span>
+                            {{ student.department }}
+                        </span>
+
+                    </div>
+
+                    {% endif %}
+
+
+                    {% if student.course is defined %}
+
+                    <div class="profile-detail">
+
+                        <i class="fa-solid fa-graduation-cap"></i>
+
+                        <span>
+                            {{ student.course }}
+                        </span>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="attendance-progress">
+
+                    <div class="progress-header">
+
+                        <span>
+                            Attendance Percentage
+                        </span>
+
+                        <span>
+                            {{ percentage | default(0) }}%
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        <div
+                            class="progress-fill"
+                            data-percentage="{{ percentage | default(0) }}"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==========================================
+             ATTENDANCE HISTORY
+        ========================================== -->
+
+        <section class="student-card attendance-card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+
+                    <div class="card-title-text">
+
+                        <h2>Attendance History</h2>
+
+                        <p>Your recent attendance records</p>
+
+                    </div>
+
+                </div>
+
+                <span class="live-badge">
+                    <span class="live-dot"></span>
+                    Records
+                </span>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="attendance-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% if attendance %}
+
+                            {% for record in attendance %}
+
+                                <tr>
+
+                                    <td>
+
+                                        {% if record.date is defined %}
+                                            {{ record.date }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% set status = record.status | default('Unknown', true) %}
+
+                                        {% if status | lower == 'present' %}
+
+                                            <span class="status-badge status-present">
+
+                                                <i class="fa-solid fa-check"></i>
+
+                                                Present
+
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="status-badge status-absent">
+
+                                                <i class="fa-solid fa-xmark"></i>
+
+                                                {{ status }}
+
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+
+                                        {% if record.time is defined %}
+
+                                            {{ record.time }}
+
+                                        {% elif record.timestamp is defined %}
+
+                                            {{ record.timestamp }}
+
+                                        {% else %}
+
+                                            N/A
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="3"
+                                    class="no-records"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-calendar-xmark"
+                                        style="font-size:28px; margin-bottom:10px; display:block;"
+                                    ></i>
+
+                                    No attendance records found.
+
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer class="dashboard-footer">
+
+    Smart Attendance System
+    <span class="footer-dot"></span>
+    Student Portal
+    <span class="footer-dot"></span>
+    &copy; 2026
+
+</footer>
+```
+
 </div>
 
+<!-- ==========================================
+     JAVASCRIPT
+========================================== -->
 
 <script>
 
-function togglePassword() {
+document.addEventListener("DOMContentLoaded", function () {
 
-    const passwordInput =
-        document.getElementById("password");
+    /* ==========================================
+       DATE
+    ========================================== */
 
-    const passwordIcon =
-        document.getElementById("passwordIcon");
+    const dateElement =
+        document.getElementById("studentDashboardDate");
 
-    if (passwordInput.type === "password") {
+    if (dateElement) {
 
-        passwordInput.type = "text";
+        const today = new Date();
 
-        passwordIcon.classList.remove("fa-eye");
-        passwordIcon.classList.add("fa-eye-slash");
-
-    } else {
-
-        passwordInput.type = "password";
-
-        passwordIcon.classList.remove("fa-eye-slash");
-        passwordIcon.classList.add("fa-eye");
-
+        dateElement.textContent =
+            today.toLocaleDateString(
+                "en-IN",
+                {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                }
+            );
     }
-}
+
+
+    /* ==========================================
+       ATTENDANCE CHART
+    ========================================== */
+
+    const chartDataElement =
+        document.getElementById("attendanceChartData");
+
+    const chartCanvas =
+        document.getElementById("attendanceChart");
+
+
+    if (
+        chartDataElement &&
+        chartCanvas &&
+        typeof Chart !== "undefined"
+    ) {
+
+        const presentDays =
+            Number(chartDataElement.dataset.present || 0);
+
+        const absentDays =
+            Number(chartDataElement.dataset.absent || 0);
+
+
+        new Chart(
+            chartCanvas,
+            {
+                type: "doughnut",
+
+                data: {
+                    labels: [
+                        "Present",
+                        "Absent"
+                    ],
+
+                    datasets: [
+                        {
+                            data: [
+                                presentDays,
+                                absentDays
+                            ],
+
+                            backgroundColor: [
+                                "#25d9a4",
+                                "#ff6578"
+                            ],
+
+                            borderWidth: 0,
+
+                            hoverOffset: 5
+                        }
+                    ]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    cutout: "72%",
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+
+                            backgroundColor: "#071b2d",
+
+                            borderColor:
+                                "rgba(74, 169, 255, 0.18)",
+
+                            borderWidth: 1,
+
+                            titleColor: "#f2f8fd",
+
+                            bodyColor: "#8ca9c2",
+
+                            padding: 10,
+
+                            callbacks: {
+
+                                label: function (context) {
+
+                                    return " " +
+                                        context.label +
+                                        ": " +
+                                        context.raw;
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+                    animation: {
+                        duration: 850,
+                        easing: "easeOutCubic"
+                    }
+                }
+            }
+        );
+    }
+
+
+    /* ==========================================
+       PROGRESS BAR
+    ========================================== */
+
+    const progressFill =
+        document.querySelector(".progress-fill");
+
+
+    if (progressFill) {
+
+        let percentage =
+            Number(progressFill.dataset.percentage || 0);
+
+        percentage =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    percentage
+                )
+            );
+
+        requestAnimationFrame(function () {
+
+            progressFill.style.width =
+                percentage + "%";
+
+        });
+    }
+
+});
 
 </script>
 
