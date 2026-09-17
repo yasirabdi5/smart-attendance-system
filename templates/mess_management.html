@@ -123,67 +123,32 @@
                 </div>
             </div>
 
-
             <div class="action-grid">
 
-                <!-- Breakfast -->
+                {% for meal in meals %}
+
                 <div class="action-card">
 
                     <div class="action-icon">
-                        <i class="fa-solid fa-mug-hot"></i>
+                        {% if meal['meal_name'] == 'Breakfast' %}
+                            <i class="fa-solid fa-mug-hot"></i>
+                        {% elif meal['meal_name'] == 'Lunch' %}
+                            <i class="fa-solid fa-bowl-food"></i>
+                        {% elif meal['meal_name'] == 'Evening Snacks' %}
+                            <i class="fa-solid fa-cookie-bite"></i>
+                        {% elif meal['meal_name'] == 'Dinner' %}
+                            <i class="fa-solid fa-utensils"></i>
+                        {% endif %}
                     </div>
 
                     <div>
-                        <h3>Breakfast</h3>
-                        <p>07:30 AM - 09:30 AM</p>
+                        <h3>{{ meal['meal_name'] }}</h3>
+                        <p>{{ meal['start_time'] }} - {{ meal['end_time'] }}</p>
                     </div>
 
                 </div>
 
-
-                <!-- Lunch -->
-                <div class="action-card">
-
-                    <div class="action-icon">
-                        <i class="fa-solid fa-bowl-food"></i>
-                    </div>
-
-                    <div>
-                        <h3>Lunch</h3>
-                        <p>01:00 PM - 03:00 PM</p>
-                    </div>
-
-                </div>
-
-
-                <!-- Evening Snacks -->
-                <div class="action-card">
-
-                    <div class="action-icon">
-                        <i class="fa-solid fa-cookie-bite"></i>
-                    </div>
-
-                    <div>
-                        <h3>Evening Snacks</h3>
-                        <p>05:00 PM - 06:00 PM</p>
-                    </div>
-
-                </div>
-
-
-                <!-- Dinner -->
-                <div class="action-card">
-
-                    <div class="action-icon">
-                        <i class="fa-solid fa-utensils"></i>
-                    </div>
-
-                    <div>
-                        <h3>Dinner</h3>
-                        <p>07:30 PM - 09:30 PM</p>
-                    </div>
-
-                </div>
+                {% endfor %}
 
             </div>
 
@@ -325,6 +290,62 @@
                     QR-based meal attendance tracking integrated
                     with the Smart Attendance System.
                 </p>
+            </div>
+
+        </section>
+
+        <!-- Edit Meal Timings -->
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Edit Meal Timings</h2>
+                    <p>Update the start and end time for each meal.</p>
+                </div>
+            </div>
+
+            <div class="action-grid">
+
+                {% for meal in meals %}
+
+                <form action="/mess/config" method="POST" class="action-card">
+
+                    <input
+                        type="hidden"
+                        name="meal_name"
+                        value="{{ meal['meal_name'] }}"
+                    >
+
+                    <div>
+                        <h3>{{ meal['meal_name'] }}</h3>
+
+                        <p>Start Time</p>
+
+                        <input
+                            type="time"
+                            name="start_time"
+                            value="{{ meal['start_time'] }}"
+                            required
+                        >
+
+                        <p>End Time</p>
+
+                        <input
+                            type="time"
+                            name="end_time"
+                            value="{{ meal['end_time'] }}"
+                            required
+                        >
+
+                        <button type="submit">
+                            Update Timing
+                        </button>
+                    </div>
+
+                </form>
+
+                {% endfor %}
+
             </div>
 
         </section>
