@@ -999,6 +999,39 @@
 
             </section>
 
+            {% if student["mess_access"] == 1 %}
+
+            <div class="dashboard-section">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Mess QR Code</h2>
+                        <p>Show this QR code at the mess entrance for attendance.</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center; padding: 20px;">
+
+                    <img
+                        src="{{ url_for('static', filename='mess_qr/student_' ~ student['id'] ~ '.png') }}"
+                        alt="Mess QR Code"
+                        style="width: 250px; height: 250px; object-fit: contain;"
+                    >
+
+                    <p style="margin-top: 15px;">
+                        <strong>Student ID:</strong> {{ student["id"] }}
+                    </p>
+
+                    <p>
+                        Use this QR code to mark your mess attendance.
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
 
             <!-- =================================================
                  ATTENDANCE HISTORY

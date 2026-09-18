@@ -1,4 +1,4 @@
-
+import qrcode
 import os
 import sqlite3
 import base64
@@ -1076,6 +1076,8 @@ def students():
                 "image"
             )
 
+            mess_access = int(data.get("mess_access", 0))
+
             if not password:
 
                 conn.close()
@@ -1230,22 +1232,52 @@ def students():
                         roll_no,
                         email,
                         photo_path,
-                        password
+                        password,
+                        mess_access
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
                     (
                         name,
                         roll_no,
                         email,
                         "",
-                        password
+                        password,
+                        mess_access
                     )
                 )
 
                 student_id = conn.execute(
                     "SELECT last_insert_rowid()"
                 ).fetchone()[0]
+
+                # Generate QR only for students with mess access
+                if mess_access == 1:
+
+                    qr_folder = os.path.join(
+                        "static",
+                        "mess_qr"
+                    )
+
+                    os.makedirs(
+                        qr_folder,
+                        exist_ok=True
+                    )
+
+                    qr_filename = (
+                        f"student_{student_id}.png"
+                    )
+
+                    qr_path = os.path.join(
+                        qr_folder,
+                        qr_filename
+                    )
+
+                    qr = qrcode.make(
+                        str(student_id)
+                    )
+
+                    qr.save(qr_path)
 
                 # Use permanent student ID
                 # for photo filename.
