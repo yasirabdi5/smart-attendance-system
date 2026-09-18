@@ -1,395 +1,789 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Mess QR Scanner</title>
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+            margin: 0;
+            min-height: 100vh;
             font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: #334155;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+
+        .scanner-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            background: black;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #qr-video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: black;
+        }
+
+        /*
+            IMPORTANT:
+            There is intentionally NO QR alignment box.
+
+            qr-scanner analyzes the complete camera frame.
+        */
+
+        .scanner-status {
+            margin-top: 15px;
             text-align: center;
+            color: #94a3b8;
+            font-size: 15px;
         }
 
-        #reader {
-            width: 700px;
-            max-width: 95%;
-            margin: 20px auto;
+        .result {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
         }
 
-        #result {
-            font-size: 20px;
+        .success {
+            background: #14532d;
+            border: 1px solid #22c55e;
+        }
+
+        .error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+        }
+
+        .already {
+            background: #713f12;
+            border: 1px solid #eab308;
+        }
+
+        .student-name {
+            font-size: 24px;
             font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        #status {
-            margin: 15px;
+        .student-info {
+            font-size: 15px;
+            color: #d1d5db;
         }
 
-        #student,
-        #meal,
-        #time {
-            margin: 8px;
+        .meal-info {
+            margin-top: 8px;
+            font-size: 15px;
+            color: #cbd5e1;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            padding: 11px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            color: white;
+            background: #2563eb;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button.stop {
+            background: #dc2626;
+        }
+
+        button.stop:hover {
+            background: #b91c1c;
+        }
+
+        .current-meal {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .current-meal strong {
+            color: #22c55e;
+        }
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .scanner-card {
+                padding: 12px;
+            }
+
+            .student-name {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Mess QR Scanner</h1>
+<div class="container">
 
-    <div id="reader"></div>
+    <div class="header">
 
-    <div id="result">
+        <h1>Mess QR Scanner</h1>
 
-        <div id="status">
-            Starting camera...
-        </div>
-
-        <div id="student"></div>
-
-        <div id="meal"></div>
-
-        <div id="time"></div>
+        <a
+            href="{{ url_for('mess_management') }}"
+            class="back-btn"
+        >
+            Back
+        </a>
 
     </div>
 
 
-    <script>
+    <div class="scanner-card">
 
-        const status = document.getElementById("status");
-        const student = document.getElementById("student");
-        const meal = document.getElementById("meal");
-        const time = document.getElementById("time");
-
-
-        /*
-         * Stores recently scanned QR codes.
-         *
-         * This prevents the same QR from sending
-         * requests repeatedly while it is in front
-         * of the camera.
-         */
-        const recentScans = new Map();
-
-        const SCAN_COOLDOWN = 5000;
+        <div class="current-meal">
+            Current Meal:
+            <strong id="current-meal">
+                Checking...
+            </strong>
+        </div>
 
 
-        /*
-         * Called whenever a QR code is detected.
-         */
-        function onScanSuccess(decodedText, decodedResult) {
+        <div class="camera-container">
 
-            const studentId = decodedText.trim();
+            <video
+                id="qr-video"
+                playsinline
+            ></video>
 
-
-            /*
-             * QR code must contain only a numeric
-             * student ID.
-             */
-            if (!/^\d+$/.test(studentId)) {
-
-                status.textContent =
-                    "Invalid QR data.";
-
-                return;
-            }
+        </div>
 
 
-            const now = Date.now();
+        <div
+            class="scanner-status"
+            id="scanner-status"
+        >
+            Starting camera...
+        </div>
 
 
-            /*
-             * Check when this student's QR
-             * was last processed.
-             */
-            const lastScanTime =
-                recentScans.get(studentId) || 0;
+        <div
+            id="result"
+            class="result"
+        ></div>
 
 
-            /*
-             * Ignore the same QR for 5 seconds.
-             */
-            if (now - lastScanTime < SCAN_COOLDOWN) {
-                return;
-            }
+        <div class="controls">
+
+            <button
+                id="start-btn"
+                onclick="startScanner()"
+            >
+                Start Scanner
+            </button>
+
+            <button
+                id="stop-btn"
+                class="stop"
+                onclick="stopScanner()"
+            >
+                Stop Scanner
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 
-            /*
-             * Remember this QR code.
-             */
-            recentScans.set(studentId, now);
+<!-- qr-scanner library -->
+<script src="{{ url_for('static', filename='qr-scanner.umd.min.js') }}"></script>
+
+<script>
+    QrScanner.WORKER_PATH =
+        "{{ url_for('static', filename='qr-scanner-worker.min.js') }}";
+</script>
+
+<script>
+
+    const video = document.getElementById("qr-video");
+
+    const statusElement =
+        document.getElementById("scanner-status");
+
+    const resultElement =
+        document.getElementById("result");
+
+    const mealElement =
+        document.getElementById("current-meal");
 
 
-            status.textContent =
-                "QR detected: " + studentId;
+    let scanner = null;
+
+    let scannerRunning = false;
+
+    /*
+        Prevent the same QR from being processed
+        repeatedly while it remains in front of
+        the camera.
+    */
+    let lastScannedId = null;
+
+    let lastScanTime = 0;
+
+    /*
+        Very small cooldown.
+
+        This does NOT stop continuous scanning.
+
+        Student 1 scans,
+        moves away,
+        Student 2 scans immediately.
+    */
+    const SCAN_COOLDOWN = 1200;
 
 
-            /*
-             * Send the student ID to Flask.
-             */
-            sendStudentId(studentId);
+    function showStatus(message) {
+
+        statusElement.textContent = message;
+
+    }
 
 
-            /*
-             * Remove the QR from the cooldown
-             * after 5 seconds.
-             */
-            setTimeout(() => {
+    function showResult(
+        type,
+        html
+    ) {
 
-                const savedTime =
-                    recentScans.get(studentId);
+        resultElement.className =
+            "result " + type;
 
+        resultElement.innerHTML =
+            html;
 
-                if (savedTime === now) {
+        resultElement.style.display =
+            "block";
 
-                    recentScans.delete(studentId);
-
-                }
-
-            }, SCAN_COOLDOWN);
-        }
+    }
 
 
-        /*
-         * Called when a QR code is not detected.
-         *
-         * We intentionally do nothing here because
-         * the camera must remain continuously active.
-         */
-        function onScanFailure(error) {
+    function hideResult() {
 
-            // Keep scanning continuously.
+        resultElement.style.display =
+            "none";
 
-        }
+    }
 
 
-        /*
-         * Create the QR scanner.
-         */
-        const html5QrCode =
-            new Html5Qrcode("reader");
+    async function markAttendance(studentId) {
 
+        try {
 
-        /*
-         * Start camera.
-         */
-        async function startScanner() {
-
-            try {
-
-                const cameras =
-                    await Html5Qrcode.getCameras();
-
-
-                if (!cameras || cameras.length === 0) {
-
-                    status.textContent =
-                        "No camera found.";
-
-                    return;
-                }
-
-
-                /*
-                 * Use the first camera by default.
-                 */
-                let cameraId =
-                    cameras[0].id;
-
-
-                /*
-                 * Prefer rear/environment camera
-                 * if available.
-                 */
-                for (const camera of cameras) {
-
-                    const label =
-                        camera.label.toLowerCase();
-
-
-                    if (
-                        label.includes("back") ||
-                        label.includes("rear") ||
-                        label.includes("environment")
-                    ) {
-
-                        cameraId =
-                            camera.id;
-
-                        break;
-                    }
-                }
-
-
-                /*
-                 * Start the scanner.
-                 *
-                 * The camera remains ON continuously.
-                 */
-                await html5QrCode.start(
-
-                    cameraId,
-
+            const response =
+                await fetch(
+                    "{{ url_for('mess_scan') }}",
                     {
+                        method: "POST",
 
-                        /*
-                         * Number of scanning attempts
-                         * per second.
-                         */
-                        fps: 20,
-
-
-                        /*
-                         * Large QR scanning area.
-                         */
-                        qrbox: function(
-                            viewfinderWidth,
-                            viewfinderHeight
-                        ) {
-
-                            const size =
-                                Math.min(
-                                    viewfinderWidth * 0.85,
-                                    viewfinderHeight * 0.85,
-                                    600
-                                );
-
-
-                            return {
-                                width: size,
-                                height: size
-                            };
-
+                        headers: {
+                            "Content-Type":
+                                "application/json"
                         },
 
-
-                        /*
-                         * 16:9 camera view.
-                         */
-                        aspectRatio: 1.777778,
-
-
-                        /*
-                         * Prefer HD camera resolution.
-                         */
-                        videoConstraints: {
-
-                            width: {
-                                ideal: 1280
-                            },
-
-                            height: {
-                                ideal: 720
-                            }
-
-                        }
-
-                    },
-
-
-                    /*
-                     * QR successfully detected.
-                     */
-                    onScanSuccess,
-
-
-                    /*
-                     * QR not detected.
-                     */
-                    onScanFailure
-
+                        body: JSON.stringify({
+                            student_id:
+                                studentId
+                        })
+                    }
                 );
 
 
-                status.textContent =
-                    "Ready — show QR code to camera.";
+            const data =
+                await response.json();
+
+
+            if (data.success === true) {
+
+                showResult(
+                    "success",
+
+                    `
+                    <div class="student-name">
+                        ✓ Attendance Marked
+                    </div>
+
+                    <div class="student-info">
+                        <strong>
+                            ${escapeHtml(data.name)}
+                        </strong>
+                    </div>
+
+                    <div class="student-info">
+                        Roll No:
+                        ${escapeHtml(data.roll_no)}
+                    </div>
+
+                    <div class="meal-info">
+                        ${escapeHtml(data.meal)}
+                        •
+                        ${escapeHtml(data.entry_time)}
+                    </div>
+                    `
+                );
+
+                showStatus(
+                    "✓ Ready for next student"
+                );
 
             }
 
+            else if (
+                data.success === false &&
+                data.message &&
+                data.message.toLowerCase().includes("already")
+            ) {
 
-            catch (error) {
+                showResult(
+                    "already",
 
-                status.textContent =
-                    "Could not start camera.";
+                    `
+                    <div class="student-name">
+                        Already Marked
+                    </div>
 
-                console.error(error);
+                    <div class="student-info">
+                        ${escapeHtml(data.name || "")}
+                    </div>
+
+                    <div class="meal-info">
+                        ${escapeHtml(data.message)}
+                    </div>
+                    `
+                );
+
+                showStatus(
+                    "Ready for next student"
+                );
+
+            }
+
+            else {
+
+                showResult(
+                    "error",
+
+                    `
+                    <div class="student-name">
+                        ✕ Attendance Failed
+                    </div>
+
+                    <div class="student-info">
+                        ${escapeHtml(
+                            data.message ||
+                            "Unable to mark attendance."
+                        )}
+                    </div>
+                    `
+                );
+
+                showStatus(
+                    "Ready to scan"
+                );
 
             }
 
         }
 
+        catch (error) {
+
+            console.error(error);
+
+            showResult(
+                "error",
+
+                `
+                <div class="student-name">
+                    Server Error
+                </div>
+
+                <div class="student-info">
+                    Could not connect to the server.
+                </div>
+                `
+            );
+
+            showStatus(
+                "Connection error"
+            );
+
+        }
+
+    }
+
+
+    async function handleQrResult(result) {
 
         /*
-         * Send student ID to Flask backend.
-         */
-        async function sendStudentId(studentId) {
+            qr-scanner returns an object whose
+            data property contains the decoded QR text.
+        */
 
-            try {
-
-                const response =
-                    await fetch(
-                        "/mess/scan",
-                        {
-
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-                                student_id: studentId
-                            })
-
-                        }
-                    );
+        const qrData =
+            typeof result === "string"
+                ? result
+                : result.data;
 
 
-                const data =
-                    await response.json();
-
-
-                /*
-                 * Display backend message.
-                 */
-                status.textContent = data.message;
-
-                if (data.success) {
-                    student.textContent = "Student: " + data.name;
-                    meal.textContent = "Meal: " + data.meal;
-                    time.textContent = "Entry Time: " + data.entry_time;
-                } else {
-                    student.textContent = "";
-                    meal.textContent = "";
-                    time.textContent = "";
-                }
-
-            }
-
-
-            catch (error) {
-
-                status.textContent =
-                    "Could not connect to server.";
-
-                console.error(error);
-
-            }
-
+        if (!qrData) {
+            return;
         }
 
 
         /*
-         * Start the scanner once.
-         *
-         * It will continue running until
-         * the page is closed.
-         */
-        startScanner();
+            Our QR contains the numeric student ID.
 
-    </script>
+            Example:
+            23
+        */
+
+        const studentId =
+            qrData.trim();
+
+
+        /*
+            Only accept numeric student IDs.
+        */
+
+        if (!/^\d+$/.test(studentId)) {
+
+            showResult(
+                "error",
+
+                `
+                <div class="student-name">
+                    Invalid QR
+                </div>
+
+                <div class="student-info">
+                    This QR does not contain
+                    a valid student ID.
+                </div>
+                `
+            );
+
+            return;
+        }
+
+
+        const now =
+            Date.now();
+
+
+        /*
+            Ignore repeated detections of the
+            same QR for a short period.
+        */
+
+        if (
+            studentId === lastScannedId &&
+            now - lastScanTime <
+                SCAN_COOLDOWN
+        ) {
+
+            return;
+
+        }
+
+
+        lastScannedId =
+            studentId;
+
+        lastScanTime =
+            now;
+
+
+        /*
+            Immediately send the student ID
+            to Flask.
+        */
+
+        await markAttendance(
+            studentId
+        );
+
+    }
+
+
+    async function startScanner() {
+
+        if (scannerRunning) {
+            return;
+        }
+
+
+        hideResult();
+
+        showStatus(
+            "Requesting camera..."
+        );
+
+
+        try {
+
+            /*
+                Create qr-scanner.
+
+                Important:
+                highlightScanRegion = false
+
+                This removes the usual
+                QR alignment box.
+
+                The complete video frame
+                can be scanned.
+            */
+
+            scanner =
+                new QrScanner(
+                    video,
+
+                    result => {
+
+                        console.log("QR DETECTED:", result);
+
+                        handleQrResult(
+                            result
+                        );
+
+                    },
+
+                    {
+                        returnDetailedScanResult:
+                            true,
+
+                        highlightScanRegion:
+                            false,
+
+                        highlightCodeOutline:
+                            false,
+
+                        maxScansPerSecond:
+                            20
+                    }
+                );
+
+
+            await scanner.start();
+
+
+            scannerRunning =
+                true;
+
+
+            showStatus(
+                "Scanner active — show QR anywhere in the camera frame"
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            showStatus(
+                "Camera access failed. Please allow camera permission."
+            );
+
+        }
+
+    }
+
+
+    function stopScanner() {
+
+        if (!scanner) {
+            return;
+        }
+
+
+        scanner.stop();
+
+
+        scanner.destroy();
+
+
+        scanner = null;
+
+        scannerRunning =
+            false;
+
+
+        showStatus(
+            "Scanner stopped"
+        );
+
+    }
+
+
+    /*
+        Get current meal from Flask.
+    */
+
+    async function loadCurrentMeal() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "{{ url_for('mess_current_meal') }}"
+                );
+
+            const data =
+                await response.json();
+
+            if (data.success === true) {
+
+                mealElement.textContent =
+                    data.meal;
+
+            } else {
+
+                mealElement.textContent =
+                    "No active meal";
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            mealElement.textContent =
+                "Unavailable";
+
+        }
+
+    }
+
+
+    /*
+        Escape server/user data before
+        putting it into innerHTML.
+    */
+
+    function escapeHtml(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value ?? "";
+
+        return div.innerHTML;
+
+    }
+
+
+    /*
+        Start automatically.
+    */
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            loadCurrentMeal();
+
+            startScanner();
+
+        }
+    );
+
+
+    /*
+        Stop camera when page is closed.
+    */
+
+    window.addEventListener(
+        "beforeunload",
+        () => {
+
+            stopScanner();
+
+        }
+    );
+
+</script>
 
 </body>
 </html>
