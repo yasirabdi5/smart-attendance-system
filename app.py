@@ -2299,6 +2299,10 @@ def edit_student(student_id):
             "email"
         ]
 
+        mess_access = int(
+            request.form.get("mess_access", 0)
+        )
+
         try:
 
             conn.execute(
@@ -2307,18 +2311,36 @@ def edit_student(student_id):
                 SET
                     name = ?,
                     roll_no = ?,
-                    email = ?
+                    email = ?,
+                    mess_access = ?
                 WHERE id = ?
                 """,
                 (
                     name,
                     roll_no,
                     email,
+                    mess_access,
                     student_id
                 )
             )
 
             conn.commit()
+
+            # Handle Mess QR code based on access change
+            qr_folder = os.path.join("static", "mess_qr")
+            qr_path = os.path.join(
+                qr_folder,
+                f"student_{student_id}.png"
+            )
+
+            if mess_access == 1:
+                os.makedirs(qr_folder, exist_ok=True)
+
+                qr = qrcode.make(str(student_id))
+                qr.save(qr_path)
+
+            elif os.path.exists(qr_path):
+                os.remove(qr_path)
 
         except sqlite3.IntegrityError:
 

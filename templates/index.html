@@ -1971,16 +1971,14 @@ function escapeHtml(
     }
 </script>
 
-    <script>
-        const attendanceData = {
-            present: Number("{{ chart_present }}"),
-            absent: Number("{{ chart_absent }}")
-        };
+<script>
+    const attendanceData = {
+        present: Number("{{ chart_present }}"),
+        absent: Number("{{ chart_absent }}")
+    };
 
-        const ctx = document.getElementById("attendanceChart");
+    const ctx = document.getElementById("attendanceChart");
 
-        new Chart(ctx, {
-            <script>
     new Chart(ctx, {
         type: "doughnut",
         data: {
