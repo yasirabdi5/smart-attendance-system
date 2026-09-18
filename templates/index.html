@@ -1980,27 +1980,28 @@ function escapeHtml(
         const ctx = document.getElementById("attendanceChart");
 
         new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["Present", "Absent"],
-                datasets: [{
-                    data: [
-                        attendanceData.present,
-                        attendanceData.absent
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-                 plugins: {
-        legend: {
-            display: false
-         }
-                           }
+            <script>
+    new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Present", "Absent"],
+            datasets: [{
+                data: [
+                    attendanceData.present,
+                    attendanceData.absent
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
             }
-        });
-    </script>
-
+        }
+    });
+</script>
 </body>
 </html>
