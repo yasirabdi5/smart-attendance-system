@@ -65,6 +65,22 @@
                 required
             >
 
+            <label for="mess_access">Mess Access</label>
+
+            <select
+                id="mess_access"
+                name="mess_access"
+                required
+            >
+                <option value="0" {% if student.mess_access == 0 %}selected{% endif %}>
+                    No
+                </option>
+
+                <option value="1" {% if student.mess_access == 1 %}selected{% endif %}>
+                    Yes
+                </option>
+            </select>
+
             <button type="submit" class="button">
                 Update Student
             </button>

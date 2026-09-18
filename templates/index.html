@@ -214,8 +214,8 @@
             </section>
 
             <!-- ==========================================
-             VOICE ATTENDANCE ASSISTANT
-            ========================================== -->
+     VOICE ATTENDANCE ASSISTANT
+========================================== -->
 <section id="voiceAssistant" class="voice-assistant-section">
 
     <div class="voice-assistant-card">
@@ -734,8 +734,8 @@
 </section>
 
            <!-- ==========================================
-             ATTENDANCE OVERVIEW + RECENT ACTIVITIES
-            ========================================== -->
+     ATTENDANCE OVERVIEW + RECENT ACTIVITIES
+========================================== -->
 
 <section class="dashboard-insights">
 
@@ -1971,36 +1971,35 @@ function escapeHtml(
     }
 </script>
 
-    <script>
-        const attendanceData = {
-            present: Number("{{ chart_present }}"),
-            absent: Number("{{ chart_absent }}")
-        };
+<script>
+    const attendanceData = {
+        present: Number("{{ chart_present }}"),
+        absent: Number("{{ chart_absent }}")
+    };
 
-        const ctx = document.getElementById("attendanceChart");
+    const ctx = document.getElementById("attendanceChart");
 
-        new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["Present", "Absent"],
-                datasets: [{
-                    data: [
-                        attendanceData.present,
-                        attendanceData.absent
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+    new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Present", "Absent"],
+            datasets: [{
+                data: [
+                    attendanceData.present,
+                    attendanceData.absent
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
                 }
             }
         }
-    );
+    });
 </script>
 </body>
 </html>
