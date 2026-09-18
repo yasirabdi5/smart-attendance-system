@@ -49,6 +49,15 @@ def get_current_meal():
 
     return None
 
+@app.route("/mess/current-meal")
+def mess_current_meal():
+    meal = get_current_meal()
+
+    return jsonify({
+        "success": True,
+        "meal": meal
+    })
+
 def mark_mess_attendance(student_id):
     meal = get_current_meal()
 
@@ -59,6 +68,25 @@ def mark_mess_attendance(student_id):
     entry_time = datetime.now().strftime("%H:%M:%S")
 
     connection = sqlite3.connect(DATABASE)
+
+    connection.row_factory = sqlite3.Row
+
+    student = connection.execute(
+        """
+        SELECT id, name, roll_no, mess_access
+        FROM students
+        WHERE id = ?
+        """,
+        (student_id,)
+    ).fetchone()
+
+    if student is None:
+        connection.close()
+        return False, "Student not found."
+
+    if student["mess_access"] != 1:
+        connection.close()
+        return False, "This student does not have Mess Access."
 
     existing = connection.execute(
         """
