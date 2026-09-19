@@ -3516,8 +3516,6 @@ body {
 
 }
 
-cat >> static/styles.css <<'EOF'
-
 /* ==========================================
    STUDENT DASHBOARD — PREMIUM PROFILE CARD
 ========================================== */
@@ -4256,6 +4254,7 @@ cat >> static/styles.css <<'EOF'
     .attendance-table {
         min-width: 500px;
     }
+}
 /* =========================================================
    STUDENT DASHBOARD — PREMIUM ATTENDANCE OVERVIEW
 ========================================================= */
