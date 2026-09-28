@@ -420,6 +420,14 @@ def init_db():
             "ALTER TABLE students ADD COLUMN password TEXT"
         )
 
+    if not any(
+        column["name"] == "mess_access"
+        for column in columns
+    ):
+        conn.execute(
+            "ALTER TABLE students ADD COLUMN mess_access INTEGER NOT NULL DEFAULT 0"
+        )
+
     # --------------------------------------
     # Admin users table
     # --------------------------------------
